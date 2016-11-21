@@ -1,6 +1,7 @@
 # Nodeswork
 
-Nodeswork is a framework to build simple applications and to deploy easily to nodeswork.com.
+Nodeswork is a framework to build simple applications and to deploy easily to
+nodeswork.com.
 
 ## Installation
 
