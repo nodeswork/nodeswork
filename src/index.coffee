@@ -2,15 +2,19 @@
 mongoose              = require 'mongoose'
 mongooseSchemaExtend  = require 'mongoose-schema-extend'
 
+TimestampModelPlugin  = require './model-plugins/timestamp_model_plugin'
+
 Nodeswork = ({
-  @moduleName  = 'sampleModule'
-  components   = {}
+  @moduleName     = 'sampleModule'
+  components      = {}
 } = @options = {}) ->
 
   @Models        = {}
   @Tasks         = {}
   @ModelPlugins  = {}
   @api           = {}
+
+  @modelPlugin 'Timestamp', TimestampModelPlugin
 
 
 Nodeswork.prototype.model = (modelName, schema) ->
@@ -19,6 +23,7 @@ Nodeswork.prototype.model = (modelName, schema) ->
 
 Nodeswork.prototype.modelPlugin = (pluginName, plugin) ->
   @ModelPlugins[pluginName] = plugin
+  @
 
 
 Nodeswork.prototype.task  = (taskName, schema) ->
