@@ -66,6 +66,7 @@ Nodeswork.prototype.model = (modelName, modelSchema, {
     params:  {}
   }
 } = {}) ->
+  winston.info "Registering model #{modelName}."
   @Models[modelName] = model = @mongoose.model modelName, modelSchema
 
   _.each apiExposed.methods, (method) => switch method
@@ -146,6 +147,7 @@ Nodeswork.prototype.modelPlugin = (pluginName, plugin) ->
 
 
 Nodeswork.prototype.task  = (taskName, taskSchema, opts) ->
+  winston.info "Registering task #{taskName}."
   @model taskName, taskSchema, opts
   @Tasks[taskName] = @Models[taskName]
   @
