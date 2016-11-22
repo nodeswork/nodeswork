@@ -17,8 +17,6 @@ Task                    = require './models/task'
 
 mongoose.Promise        = global.Promise
 
-mongoose.connect 'mongodb://localhost/test'
-
 process.on 'uncaughtException', (err) ->
   console.log 'uncaughtException', err
 
@@ -128,6 +126,7 @@ Nodeswork.prototype.task  = (task, opts) ->
 
 
 Nodeswork.prototype.start = () ->
+  mongoose.connect 'mongodb://localhost/test'
   @dbConnection  = {}
   @server        = new koa()
   @server
