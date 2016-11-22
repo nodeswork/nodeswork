@@ -1,8 +1,6 @@
-var ExecutionCounterTask, ExecutionCounterTaskSchema, User, UserSchema, co, mongoose, nodeswork, nw;
+var ExecutionCounterTask, ExecutionCounterTaskSchema, User, UserSchema, co, nodeswork, nw;
 
 co = require('co');
-
-mongoose = require('mongoose');
 
 nodeswork = require('../lib/index');
 
@@ -10,13 +8,13 @@ nw = new nodeswork.Nodeswork({
   moduleName: 'simple_server'
 });
 
-UserSchema = mongoose.Schema({
+UserSchema = nodeswork.mongoose.Schema({
   username: String
 }, {
   collection: 'users'
 });
 
-User = mongoose.model('User', UserSchema);
+User = nodeswork.mongoose.model('User', UserSchema);
 
 nw.model(User, {
   apiExposed: {
@@ -41,7 +39,7 @@ ExecutionCounterTaskSchema.methods.execute = function(nw) {
   return this.numOfExecutions++;
 };
 
-ExecutionCounterTask = mongoose.model('ExecutionCounterTask', ExecutionCounterTaskSchema);
+ExecutionCounterTask = nodeswork.mongoose.model('ExecutionCounterTask', ExecutionCounterTaskSchema);
 
 nw.task(ExecutionCounterTask);
 

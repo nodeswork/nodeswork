@@ -6,6 +6,7 @@ koaBodyParser           = require 'koa-bodyparser'
 koaRouter               = require 'koa-router'
 mongoose                = require 'mongoose'
 mongooseSchemaExtend    = require 'mongoose-schema-extend'
+winston                 = require 'winston'
 
 DescriptiveModelPlugin  = require './model-plugins/descriptive_model_plugin'
 StatusModelPlugin       = require './model-plugins/status_model_plugin'
@@ -42,6 +43,8 @@ Nodeswork = ({
 
 Nodeswork.prototype.Nodeswork = Nodeswork
 
+Nodeswork.prototype.mongoose  = mongoose
+
 
 Nodeswork.prototype.model = (model, {
   apiExposed = {
@@ -55,15 +58,20 @@ Nodeswork.prototype.model = (model, {
 
   _.each apiExposed.methods, (method) => switch method
     when 'get'
+      winston.info "Bind API: [GET]  #{apiExposed.path}"
       @api.get apiExposed.path, apiGetHandler model, apiExposed
     when 'create'
+      winston.info "Bind API: [POST]
+        #{emptyUrlPath apiExposed.path, apiExposed.params}"
       @api.post(
         emptyUrlPath apiExposed.path, apiExposed.params
-        apiPostHandler model, apiExposed
+        apiCreateHandler model, apiExposed
       )
     when 'update'
+      winston.info "Bind API: [POST] #{apiExposed.path}"
       @api.post apiExposed.path, apiUpdateHandler model, apiExposed
     when 'delete'
+      winston.info "Bind API: [DELETE] #{apiExposed.path}"
       @api.delete apiExposed.path, apiDeleteHandler model, apiExposed
 
   @
@@ -86,21 +94,26 @@ emptyUrlPath = (path, rules) ->
 
 apiGetHandler = (model, apiExposed) ->
   (ctx) -> co ->
+    winston.info "Get call to Auto-gen model handler: #{model.modelName}"
     getQuery = convertParamsToObject ctx.params, apiExposed.params
     res = yield model.findOne(getQuery).exec()
     if res then ctx.body = res
     else ctx.status = 404
 
 
-apiPostHandler = (model, apiExposed) ->
+apiCreateHandler = (model, apiExposed) ->
   (ctx) -> co ->
+    console.log ctx.request.body
+    winston.info "Create call to Auto-gen model handler: #{model.modelName}", ctx.request.body
     doc = yield model.create ctx.request.body
+    console.log 'doc', doc
     if doc then ctx.body = doc
     else ctx.status = 404
 
 
 apiUpdateHandler = (model, apiExposed) ->
   (ctx) -> co ->
+    winston.info "Update call to Auto-gen model handler: #{model.modelName}"
     updateQuery = convertParamsToObject ctx.params, apiExposed.params
     res = yield model.findOneAndUpdate updateQuery, ctx.request.body, new: true
     if res then ctx.body = res
@@ -109,6 +122,7 @@ apiUpdateHandler = (model, apiExposed) ->
 
 apiDeleteHandler = (model, apiExposed) ->
   (ctx) -> co ->
+    winston.info "Delete call to Auto-gen model handler: #{model.modelName}"
     deleteQuery = convertParamsToObject ctx.params, apiExposed.params
     res = yield model.findOneAndRemove deleteQuery
     ctx.status = 202
@@ -125,6 +139,10 @@ Nodeswork.prototype.task  = (task, opts) ->
   @
 
 
+mongoose.connection.once 'open', ->
+  winston.info 'Mongoose connection has been established.'
+
+
 Nodeswork.prototype.start = () ->
   mongoose.connect 'mongodb://localhost/test'
   @dbConnection  = {}
@@ -136,7 +154,7 @@ Nodeswork.prototype.start = () ->
 
   @server.listen 5555
 
-  console.log 'Server is listing on port 5555.'
+  winston.info 'Server is listing on port 5555.'
 
 
 module.exports = nodeswork = new Nodeswork
