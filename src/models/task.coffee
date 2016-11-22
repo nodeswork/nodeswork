@@ -50,13 +50,12 @@ TaskSchema.statics.nextRunnableTask = -> co =>
     'status': 'IDLE'
   }
 
-  res = yield @findOne(query).sort('priority').exec()
-
-  if res?
-    res.status = 'LOADING'
-    yield res.save()
-
-  res
+  yield @findOneAndUpdate(query, {
+    '$set':
+      'status': 'LOADING'
+  }, {
+    new: true, sort:'priority'
+  })
 
 
 TaskSchema.methods.runAsNextTask = (nw) -> co =>
