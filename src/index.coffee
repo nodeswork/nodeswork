@@ -67,6 +67,13 @@ Nodeswork.prototype.model = (modelName, modelSchema, {
   }
 } = {}) ->
   winston.info "Registering model #{modelName}."
+
+  modelSchema.statics.Models = @Models
+  modelSchema.statics.Tasks  = @Tasks
+  modelSchema.virtual 'Models'
+    .get => @Models
+  modelSchema.virtual 'Tasks'
+    .get => @Tasks
   @Models[modelName] = model = @mongoose.model modelName, modelSchema
 
   _.each apiExposed.methods, (method) => switch method
