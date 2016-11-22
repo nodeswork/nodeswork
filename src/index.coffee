@@ -22,15 +22,23 @@ process.on 'uncaughtException', (err) ->
   console.log 'uncaughtException', err
 
 
-Nodeswork = ({
-  @moduleName     = 'sampleModule'
-  components      = {}
-} = @options = {}) ->
+defaultOptions = {
+  moduleName:  'sampleModule'
+  dbAddress:   'mongodb://localhost/test'
+}
+
+Nodeswork = (@options = {}) ->
+  _.defaults @options, defaultOptions
+  {
+    @moduleName
+  } = @options
 
   @Models        = {}
   @Tasks         = {}
   @ModelPlugins  = {}
   @api           = koaRouter prefix: '/api/v1'
+
+  @mongoose      = new mongoose.Mongoose
 
   @
     .modelPlugin 'Descriptive', DescriptiveModelPlugin
@@ -42,8 +50,6 @@ Nodeswork = ({
 
 
 Nodeswork.prototype.Nodeswork = Nodeswork
-
-Nodeswork.prototype.mongoose  = mongoose
 
 
 Nodeswork.prototype.model = (model, {
@@ -139,13 +145,12 @@ Nodeswork.prototype.task  = (task, opts) ->
   @
 
 
-mongoose.connection.once 'open', ->
-  winston.info 'Mongoose connection has been established.'
-
 
 Nodeswork.prototype.start = () ->
-  mongoose.connect 'mongodb://localhost/test'
-  @dbConnection  = {}
+  @mongoose.connection.once 'open', ->
+    winston.info 'Mongoose connection has been established.'
+  @mongoose.connect @options.dbAddress
+
   @server        = new koa()
   @server
     .use koaBodyParser()
