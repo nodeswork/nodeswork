@@ -9,7 +9,6 @@ TaskSchema = mongoose.Schema {
   scheduler:
     kind:
       enum:       ['SINCE_LAST_EXECUTION', 'ON_BOOT']
-      default:    'SINCE_LAST_EXECUTION'
     duration:     # in millisecond
       type:       Number
     priority:

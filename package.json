@@ -8,17 +8,22 @@
     "url": "git@github.com:nodeswork/nodeswork.git"
   },
   "main": "lib/index.js",
-  "scripts": {
-  },
+  "scripts": {},
   "engines": {
     "node": ">= 4.0"
   },
   "dependencies": {
+    "co": "^4.6.0",
+    "koa": "^2.0.0",
+    "koa-router": "^7.0.0",
     "mongoose": "^4.3.4",
-    "mongoose-schema-extend": "git@github.com:nodeswork/mongoose-schema-extend.git"
+    "mongoose-schema-extend": "git@github.com:nodeswork/mongoose-schema-extend.git",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
     "coffee-script": "^1.11.0"
   },
-  "keywords": [ "nodeswork" ]
+  "keywords": [
+    "nodeswork"
+  ]
 }
