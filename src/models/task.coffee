@@ -76,13 +76,17 @@ TaskSchema.methods.success = () -> co =>
   @lastExecution = Date.now()
   @status = 'IDLE'
   @nextExecution = new Date(@lastExecution.getTime() + @scheduler.duration)
-  yield @save
+  yield @save()
 
 
 TaskSchema.methods.failed = (err) ->
+  @status = 'ERROR'
+  yield @save()
 
 
 TaskSchema.methods.pause = () ->
+  @status = 'PAUSED'
+  yield @save()
 
 
 module.exports = Task = mongoose.model 'Task', TaskSchema
