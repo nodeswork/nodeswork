@@ -2,6 +2,7 @@
 _                       = require 'underscore'
 co                      = require 'co'
 koa                     = require 'koa'
+koaBodyParser           = require 'koa-bodyparser'
 koaRouter               = require 'koa-router'
 mongoose                = require 'mongoose'
 mongooseSchemaExtend    = require 'mongoose-schema-extend'
@@ -52,17 +53,23 @@ Nodeswork.prototype.model = (model, {
     params:  {}
   }
 } = {}) ->
-  console.log 'apiExposed', apiExposed
   @Models[model.name] = model
 
   _.each apiExposed.methods, (method) => switch method
     when 'get'
-      @api.get apiExposed.path, (ctx) => co =>
-        getQuery = convertParamsToObject ctx.params, apiExposed.params
-        res = yield model.findOne(getQuery).exec()
-        ctx.body = res
+      @api.get apiExposed.path, apiGetHandler model, apiExposed
+    when 'create'
+      @api.post(
+        emptyUrlPath apiExposed.path, apiExposed.params
+        apiPostHandler model, apiExposed
+      )
+    when 'update'
+      @api.post apiExposed.path, apiUpdateHandler model, apiExposed
+    when 'delete'
+      @api.delete apiExposed.path, apiDeleteHandler model, apiExposed
 
   @
+
 
 convertParamsToObject = (params, rules) ->
   _.chain params
@@ -71,6 +78,42 @@ convertParamsToObject = (params, rules) ->
     .map ([key, val]) -> [rules[key].substring(1), val]
     .object()
     .value()
+
+
+emptyUrlPath = (path, rules) ->
+  _.each rules, (val, key) ->
+    path = path.replace ":#{key}", ""
+  path
+
+
+apiGetHandler = (model, apiExposed) ->
+  (ctx) -> co ->
+    getQuery = convertParamsToObject ctx.params, apiExposed.params
+    res = yield model.findOne(getQuery).exec()
+    if res then ctx.body = res
+    else ctx.status = 404
+
+
+apiPostHandler = (model, apiExposed) ->
+  (ctx) -> co ->
+    doc = yield model.create ctx.request.body
+    if doc then ctx.body = doc
+    else ctx.status = 404
+
+
+apiUpdateHandler = (model, apiExposed) ->
+  (ctx) -> co ->
+    updateQuery = convertParamsToObject ctx.params, apiExposed.params
+    res = yield model.findOneAndUpdate updateQuery, ctx.request.body, new: true
+    if res then ctx.body = res
+    else ctx.status = 404
+
+
+apiDeleteHandler = (model, apiExposed) ->
+  (ctx) -> co ->
+    deleteQuery = convertParamsToObject ctx.params, apiExposed.params
+    res = yield model.findOneAndRemove deleteQuery
+    ctx.status = 202
 
 
 Nodeswork.prototype.modelPlugin = (pluginName, plugin) ->
@@ -87,10 +130,13 @@ Nodeswork.prototype.start = () ->
   @dbConnection  = {}
   @server        = new koa()
   @server
+    .use koaBodyParser()
     .use @api.routes()
     .use @api.allowedMethods()
 
   @server.listen 5555
+
+  console.log 'Server is listing on port 5555.'
 
 
 module.exports = nodeswork = new Nodeswork

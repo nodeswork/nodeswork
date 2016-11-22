@@ -11,7 +11,7 @@ nw = new nodeswork.Nodeswork {
 
 UserSchema = mongoose.Schema {
   username: String
-}
+}, collection: 'users'
 
 User = mongoose.model 'User', UserSchema
 
@@ -21,10 +21,7 @@ nw.model User, {
     urlName: 'User'
     path: '/users/:userId'
     params:
-      userId: '@id'
+      userId: '@_id'
 }
-
-
-nw.api.get 'user', '/users/:userId', (ctx, next) ->
 
 nw.start()
