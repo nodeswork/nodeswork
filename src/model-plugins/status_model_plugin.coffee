@@ -1,8 +1,8 @@
 # StatusSchemaPlugin is a Mongoose schema plugin which provides status fields.
 
 module.exports = StatusModelPlugin = (schema, {
-  choices = ['active', 'inactive'],
-  defaultChoice = 'inactive'
+  choices = ['ACTIVE', 'INACTIVE'],
+  defaultChoice = 'INACTIVE'
   index = no
 } = {}) ->
 

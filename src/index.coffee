@@ -53,7 +53,7 @@ Nodeswork.prototype.model = (model, {
     params:  {}
   }
 } = {}) ->
-  @Models[model.name] = model
+  @Models[model.modelName] = model
 
   _.each apiExposed.methods, (method) => switch method
     when 'get'
@@ -121,8 +121,9 @@ Nodeswork.prototype.modelPlugin = (pluginName, plugin) ->
   @
 
 
-Nodeswork.prototype.task  = (task) ->
-  @Models[task.name] = @Tasks[task.name] = task
+Nodeswork.prototype.task  = (task, opts) ->
+  @model task, opts
+  @Tasks[task.modelName] = task
   @
 
 
