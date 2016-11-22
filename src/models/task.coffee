@@ -1,15 +1,18 @@
 co       = require 'co'
 mongoose = require 'mongoose'
+winston  = require 'winston'
 
 DescriptiveModelPlugin  = require '../model-plugins/descriptive_model_plugin'
 StatusModelPlugin       = require '../model-plugins/status_model_plugin'
 TagableModelPlugin      = require '../model-plugins/tagable_model_plugin'
 
-TaskSchema = mongoose.Schema {
+module.exports = TaskSchema = mongoose.Schema {
 
   scheduler:
     kind:
+      type:       String
       enum:       ['SINCE_LAST_EXECUTION', 'SINCE_NEXT_EXECUTION']
+      default:    'SINCE_NEXT_EXECUTION'
     duration:     # in millisecond
       type:       Number
     priority:
@@ -24,7 +27,7 @@ TaskSchema = mongoose.Schema {
   .plugin StatusModelPlugin, choices: [
     'IDLE', 'INACTIVE', 'ERROR', 'SNOOZED', 'PAUSED', 'LOADING', 'EXECUTING',
     'EXHAUSTED'
-  ], defaultChoice: 'INACTIVE'
+  ], defaultChoice: 'IDLE'
   .plugin TagableModelPlugin
 
 
@@ -35,10 +38,13 @@ TaskSchema.pre 'save', (next) ->
 
 
 TaskSchema.statics.startTaskExecutor = ->
+  winston.info 'Start to execute tasks every 1000ms.'
 
   setInterval ( => co =>
     nxtTask = yield @nextRunnableTask()
-    if nxtTask? then yield nxtTask.runAsNextTask()
+    if nxtTask?
+      winston.info "Found one runnable task: #{nxtTask._id}."
+      yield nxtTask.runAsNextTask()
   ), 1000
 
 
@@ -46,7 +52,7 @@ TaskSchema.statics.nextRunnableTask = -> co =>
 
   query = {
     'nextExecution':
-      '$lte': Date.now()
+      '$lte': new Date
     'status': 'IDLE'
   }
 
@@ -87,6 +93,3 @@ TaskSchema.methods.failed = (err) ->
 TaskSchema.methods.pause = () ->
   @status = 'PAUSED'
   yield @save()
-
-
-module.exports = Task = mongoose.model 'Task', TaskSchema

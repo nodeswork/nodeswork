@@ -1,4 +1,4 @@
-var ExecutionCounterTask, ExecutionCounterTaskSchema, User, UserSchema, co, nodeswork, nw;
+var ExecutionCounterTaskSchema, UserSchema, co, nodeswork, nw;
 
 co = require('co');
 
@@ -14,9 +14,7 @@ UserSchema = nodeswork.mongoose.Schema({
   collection: 'users'
 });
 
-User = nodeswork.mongoose.model('User', UserSchema);
-
-nw.model(User, {
+nw.model('User', UserSchema, {
   apiExposed: {
     methods: ['get', 'create', 'update', 'delete'],
     urlName: 'User',
@@ -39,15 +37,13 @@ ExecutionCounterTaskSchema.methods.execute = function(nw) {
   return this.numOfExecutions++;
 };
 
-ExecutionCounterTask = nodeswork.mongoose.model('ExecutionCounterTask', ExecutionCounterTaskSchema);
-
-nw.task(ExecutionCounterTask);
+nw.task('ExecutionCounterTask', ExecutionCounterTaskSchema);
 
 co(function*() {
   var ins, task;
-  ins = (yield ExecutionCounterTask.findOne({}));
+  ins = (yield nw.Tasks.ExecutionCounterTask.findOne({}));
   if (ins == null) {
-    task = (yield ExecutionCounterTask.create({
+    task = (yield nw.Tasks.ExecutionCounterTask.create({
       scheduler: {
         kind: 'SINCE_LAST_EXECUTION',
         duration: 10000,

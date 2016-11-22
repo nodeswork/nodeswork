@@ -1,4 +1,3 @@
-
 _                       = require 'underscore'
 co                      = require 'co'
 koa                     = require 'koa'
@@ -6,6 +5,7 @@ koaBodyParser           = require 'koa-bodyparser'
 koaRouter               = require 'koa-router'
 mongoose                = require 'mongoose'
 mongooseSchemaExtend    = require 'mongoose-schema-extend'
+owlDeepcopy             = require 'owl-deepcopy'
 winston                 = require 'winston'
 
 DescriptiveModelPlugin  = require './model-plugins/descriptive_model_plugin'
@@ -13,7 +13,7 @@ StatusModelPlugin       = require './model-plugins/status_model_plugin'
 TagableModelPlugin      = require './model-plugins/tagable_model_plugin'
 TimestampModelPlugin    = require './model-plugins/timestamp_model_plugin'
 
-Task                    = require './models/task'
+TaskSchema              = require './models/task'
 
 
 mongoose.Promise        = global.Promise
@@ -29,9 +29,6 @@ defaultOptions = {
 
 Nodeswork = (@options = {}) ->
   _.defaults @options, defaultOptions
-  {
-    @moduleName
-  } = @options
 
   @Models        = {}
   @Tasks         = {}
@@ -39,6 +36,7 @@ Nodeswork = (@options = {}) ->
   @api           = koaRouter prefix: '/api/v1'
 
   @mongoose      = new mongoose.Mongoose
+  @server        = new koa()
 
   @
     .modelPlugin 'Descriptive', DescriptiveModelPlugin
@@ -46,13 +44,21 @@ Nodeswork = (@options = {}) ->
     .modelPlugin 'Tagable', TagableModelPlugin
     .modelPlugin 'Timestamp', TimestampModelPlugin
 
-    .model Task
+    .model 'Task', TaskSchema
 
 
 Nodeswork.prototype.Nodeswork = Nodeswork
 
 
-Nodeswork.prototype.model = (model, {
+Nodeswork.prototype.extend = (options = {}) ->
+  newNW = owlDeepcopy.deepCopy @
+  _.extend newNW.options, options
+  newNW.mongoose = @mongoose
+  newNW.server   = @server
+  newNW
+
+
+Nodeswork.prototype.model = (modelName, modelSchema, {
   apiExposed = {
     methods: []
     urlName: null
@@ -60,7 +66,7 @@ Nodeswork.prototype.model = (model, {
     params:  {}
   }
 } = {}) ->
-  @Models[model.modelName] = model
+  @Models[modelName] = model = @mongoose.model modelName, modelSchema
 
   _.each apiExposed.methods, (method) => switch method
     when 'get'
@@ -139,9 +145,9 @@ Nodeswork.prototype.modelPlugin = (pluginName, plugin) ->
   @
 
 
-Nodeswork.prototype.task  = (task, opts) ->
-  @model task, opts
-  @Tasks[task.modelName] = task
+Nodeswork.prototype.task  = (taskName, taskSchema, opts) ->
+  @model taskName, taskSchema, opts
+  @Tasks[taskName] = @Models[taskName]
   @
 
 
@@ -151,7 +157,6 @@ Nodeswork.prototype.start = () ->
     winston.info 'Mongoose connection has been established.'
   @mongoose.connect @options.dbAddress
 
-  @server        = new koa()
   @server
     .use koaBodyParser()
     .use @api.routes()
@@ -160,6 +165,8 @@ Nodeswork.prototype.start = () ->
   @server.listen 5555
 
   winston.info 'Server is listing on port 5555.'
+
+  @Models.Task.startTaskExecutor()
 
 
 module.exports = nodeswork = new Nodeswork
