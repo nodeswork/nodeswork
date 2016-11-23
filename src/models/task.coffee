@@ -68,7 +68,7 @@ TaskSchema.methods.runAsNextTask = (nw) -> co =>
   @status = 'EXECUTING'
   yield @save()
   try
-    @execute()
+    yield @execute()
     yield @success()
   catch e
     yield @failed e
@@ -87,6 +87,7 @@ TaskSchema.methods.success = () -> co =>
 
 TaskSchema.methods.failed = (err) ->
   @status = 'ERROR'
+  winston.error "Execution failed.", err
   yield @save()
 
 
