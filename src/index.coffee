@@ -59,14 +59,26 @@ Nodeswork.prototype.extend = (options = {}) ->
 
 
 Nodeswork.prototype.model = (modelName, modelSchema, {
-  apiExposed = {
-    methods: []
-    urlName: null
-    path:    null
-    params:  {}
-  }
+  apiExposed = {}
 } = {}) ->
   winston.info "Registering model #{modelName}."
+
+  _.defaults apiExposed, {
+    methods:      []
+    urlName:      null
+    path:         null
+    params:       {}
+    superDoc:     () -> {}
+    middlewares:  {}
+  }
+  _.defaults apiExposed.middlewares, {
+    all:          []
+    create:       []
+    get:          []
+    update:       []
+    find:         []
+    delete:       []
+  }
 
   modelSchema.statics.Models = @Models
   modelSchema.statics.Tasks  = @Tasks
@@ -79,22 +91,50 @@ Nodeswork.prototype.model = (modelName, modelSchema, {
   _.each apiExposed.methods, (method) => switch method
     when 'get'
       winston.info "Bind API: [GET]  #{apiExposed.path}"
-      @api.get apiExposed.path, apiGetHandler model, apiExposed
+      @bindApi(
+        'get', apiExposed.path,
+        apiExposed.middlewares.all, apiExposed.middlewares.get,
+        apiGetHandler model, apiExposed
+      )
+    when 'find'
+      winston.info "Bind API: [GET]
+        #{emptyUrlPath apiExposed.path, apiExposed.params}"
+      @bindApi(
+        'post'
+        emptyUrlPath apiExposed.path, apiExposed.params
+        apiExposed.middlewares.all, apiExposed.middlewares.find
+        apiFindHandler model, apiExposed
+      )
     when 'create'
       winston.info "Bind API: [POST]
         #{emptyUrlPath apiExposed.path, apiExposed.params}"
-      @api.post(
+      @bindApi(
+        'post'
         emptyUrlPath apiExposed.path, apiExposed.params
+        apiExposed.middlewares.all, apiExposed.middlewares.create
         apiCreateHandler model, apiExposed
       )
     when 'update'
       winston.info "Bind API: [POST] #{apiExposed.path}"
-      @api.post apiExposed.path, apiUpdateHandler model, apiExposed
+      @bindApi(
+        'post', apiExposed.path
+        apiExposed.middlewares.all, apiExposed.middlewares.update
+        apiUpdateHandler model, apiExposed
+      )
     when 'delete'
       winston.info "Bind API: [DELETE] #{apiExposed.path}"
-      @api.delete apiExposed.path, apiDeleteHandler model, apiExposed
+      @bindApi(
+        'delete', apiExposed.path,
+        apiExposed.middlewares.all, apiExposed.middlewares.delete
+        apiDeleteHandler model, apiExposed
+      )
 
   @
+
+
+Nodeswork.prototype.bindApi = (method, path, middlewares..., handler) ->
+  args = _.flatten [path].concat middlewares, [handler]
+  @api[method].apply @api, args
 
 
 convertParamsToObject = (params, rules) ->
@@ -115,18 +155,35 @@ emptyUrlPath = (path, rules) ->
 apiGetHandler = (model, apiExposed) ->
   (ctx) -> co ->
     winston.info "Get call to Auto-gen model handler: #{model.modelName}"
-    getQuery = convertParamsToObject ctx.params, apiExposed.params
+    getQuery = _.extend(
+      apiExposed.superDoc ctx
+      convertParamsToObject ctx.params, apiExposed.params
+    )
     res = yield model.findOne(getQuery).exec()
+    if res then ctx.body = res
+    else ctx.status = 404
+
+
+apiFindHandler = (model, apiExposed) ->
+  (ctx) -> co ->
+    winston.info "Find call to Auto-gen model handler: #{model.modelName}"
+    findQuery = _.extend(
+      apiExposed.superDoc ctx
+      convertParamsToObject ctx.params, apiExposed.params
+      ctx.query
+    )
+    res = yield model.find(findQuery).exec()
     if res then ctx.body = res
     else ctx.status = 404
 
 
 apiCreateHandler = (model, apiExposed) ->
   (ctx) -> co ->
-    console.log ctx.request.body
     winston.info "Create call to Auto-gen model handler: #{model.modelName}", ctx.request.body
-    doc = yield model.create ctx.request.body
-    console.log 'doc', doc
+    doc = yield model.create _.extend(
+      apiExposed.superDoc ctx
+      ctx.request.body
+    )
     if doc then ctx.body = doc
     else ctx.status = 404
 
@@ -134,8 +191,15 @@ apiCreateHandler = (model, apiExposed) ->
 apiUpdateHandler = (model, apiExposed) ->
   (ctx) -> co ->
     winston.info "Update call to Auto-gen model handler: #{model.modelName}"
-    updateQuery = convertParamsToObject ctx.params, apiExposed.params
-    res = yield model.findOneAndUpdate updateQuery, ctx.request.body, new: true
+    updateQuery = _.extend(
+      apiExposed.superDoc ctx
+      convertParamsToObject ctx.params, apiExposed.params
+    )
+    res = yield model.findOneAndUpdate(
+      updateQuery
+      _.extend apiExposed.superDoc(ctx), ctx.request.body
+      new: true
+    )
     if res then ctx.body = res
     else ctx.status = 404
 
@@ -143,7 +207,10 @@ apiUpdateHandler = (model, apiExposed) ->
 apiDeleteHandler = (model, apiExposed) ->
   (ctx) -> co ->
     winston.info "Delete call to Auto-gen model handler: #{model.modelName}"
-    deleteQuery = convertParamsToObject ctx.params, apiExposed.params
+    deleteQuery = _.extend(
+      apiExposed.superDoc ctx
+      convertParamsToObject ctx.params, apiExposed.params
+    )
     res = yield model.findOneAndRemove deleteQuery
     ctx.status = 202
 
