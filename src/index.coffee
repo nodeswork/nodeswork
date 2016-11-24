@@ -23,12 +23,17 @@ process.on 'uncaughtException', (err) ->
 
 
 defaultOptions = {
-  moduleName:  'sampleModule'
-  dbAddress:   'mongodb://localhost/test'
+  moduleName:         'sampleModule'
+  dbAddress:          'mongodb://localhost/test'
+  components:
+    database:         no
+    tasks:            no
+    server:           no
 }
 
 Nodeswork = (@options = {}) ->
   _.defaults @options, defaultOptions
+  _.defaults @options.components, defaultOptions.components
 
   @Models        = {}
   @Tasks         = {}
@@ -230,22 +235,28 @@ Nodeswork.prototype.task  = (taskName, taskSchema, opts) ->
 
 
 Nodeswork.prototype.start = () ->
-  @mongoose.connection.once 'open', ->
-    winston.info 'Mongoose connection has been established.'
-  @mongoose.connect @options.dbAddress
+  if @options.components.database
+    @mongoose.connection.once 'open', ->
+      winston.info 'Mongoose connection has been established.'
+    @mongoose.connect @options.dbAddress
 
-  @router.use '/api/v1', @api.routes(), @api.allowedMethods()
-  @router.get '/status', (ctx) -> ctx.body = 'ok'
-  @server
-    .use koaBodyParser()
-    .use @router.routes()
-    .use @router.allowedMethods()
+  if @options.components.tasks
+    @Models.Task.startTaskExecutor()
 
-  @server.listen 5555
 
-  winston.info 'Server is listing on port 5555.'
+  if @options.components.server
+    @router.use '/api/v1', @api.routes(), @api.allowedMethods()
+    @router.get '/status', (ctx, next) ->
+      ctx.body = 'ok'
+      next()
+    @server
+      .use koaBodyParser()
+      .use @router.routes()
+      .use @router.allowedMethods()
 
-  @Models.Task.startTaskExecutor()
+    @server.listen 5555
+
+    winston.info 'Server is listing on port 5555.'
 
 
 module.exports = nodeswork = new Nodeswork

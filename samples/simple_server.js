@@ -4,8 +4,13 @@ co = require('co');
 
 nodeswork = require('../lib/index');
 
-nw = new nodeswork.Nodeswork({
-  moduleName: 'simple_server'
+nw = nodeswork.extend({
+  moduleName:         'simple_server',
+  components: {
+    database:         true,
+    server:           true,
+    tasks:            true
+  }
 });
 
 UserSchema = nodeswork.mongoose.Schema({
@@ -32,7 +37,7 @@ ExecutionCounterTaskSchema = nw.Models.Task.schema.extend({
   }
 });
 
-ExecutionCounterTaskSchema.methods.execute = function(nw) {
+ExecutionCounterTaskSchema.methods.execute = function* (nw) {
   console.log('?????????????????????????????', this.numOfExecutions);
   return this.numOfExecutions++;
 };
