@@ -33,7 +33,8 @@ Nodeswork = (@options = {}) ->
   @Models        = {}
   @Tasks         = {}
   @ModelPlugins  = {}
-  @api           = koaRouter prefix: '/api/v1'
+  @api           = koaRouter()
+  @router        = koaRouter()
 
   @mongoose      = new mongoose.Mongoose
   @server        = new koa()
@@ -233,10 +234,12 @@ Nodeswork.prototype.start = () ->
     winston.info 'Mongoose connection has been established.'
   @mongoose.connect @options.dbAddress
 
+  @router.use '/api/v1', @api.routes(), @api.allowedMethods()
+  @router.get '/status', (ctx) -> ctx.body = 'ok'
   @server
     .use koaBodyParser()
-    .use @api.routes()
-    .use @api.allowedMethods()
+    .use @router.routes()
+    .use @router.allowedMethods()
 
   @server.listen 5555
 
