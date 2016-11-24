@@ -2,7 +2,7 @@
   "author": "Nodeswork<andy@nodeswork.com>",
   "name": "nodeswork",
   "description": "Nodeswork is a framework to build simple applications and to deploy easily to nodeswork.com.",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "repository": {
     "type": "git",
     "url": "git@github.com:nodeswork/nodeswork.git"
@@ -20,7 +20,7 @@
     "koa-bodyparser": "^3.2.0",
     "koa-router": "^7.0.0",
     "mongoose": "^4.3.4",
-    "mongoose-schema-extend": "git+ssh://git@github.com:nodeswork/mongoose-schema-extend.git",
+    "mongoose-schema-extend": "git+https://git@github.com:nodeswork/mongoose-schema-extend.git",
     "owl-deepcopy": "0.0.6",
     "underscore": "^1.8.3",
     "winston": "^2.3.0"
