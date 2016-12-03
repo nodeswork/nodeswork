@@ -13,7 +13,10 @@ StatusModelPlugin       = require './model-plugins/status_model_plugin'
 TagableModelPlugin      = require './model-plugins/tagable_model_plugin'
 TimestampModelPlugin    = require './model-plugins/timestamp_model_plugin'
 
-TaskSchema              = require './models/task'
+TaskSchema              = require './models/task_schema'
+TaskExecutionSchema     = require './models/task_execution_schema'
+
+TaskEngine              = require './task_engine'
 
 
 mongoose.Promise        = global.Promise
@@ -51,6 +54,7 @@ Nodeswork = (@options = {}) ->
     .modelPlugin 'Timestamp', TimestampModelPlugin
 
     .model 'Task', TaskSchema
+    .model 'TaskExecution', TaskExecutionSchema
 
 
 Nodeswork.prototype.Nodeswork = Nodeswork
@@ -92,6 +96,8 @@ Nodeswork.prototype.model = (modelName, modelSchema, {
     .get => @Models
   modelSchema.virtual 'Tasks'
     .get => @Tasks
+  modelSchema.virtual 'nw'
+    .get => @
   @Models[modelName] = model = @mongoose.model modelName, modelSchema
 
   _.each apiExposed.methods, (method) => switch method
@@ -241,7 +247,7 @@ Nodeswork.prototype.start = () ->
     @mongoose.connect @options.dbAddress
 
   if @options.components.tasks
-    @Models.Task.startTaskExecutor()
+    @taskEngine = new TaskEngine nw: @
 
 
   if @options.components.server

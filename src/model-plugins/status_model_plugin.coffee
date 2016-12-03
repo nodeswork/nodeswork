@@ -10,5 +10,9 @@ module.exports = StatusModelPlugin = (schema, {
     status:  type: String, enum: choices, default: defaultChoice
   }
 
+  schema.methods.updateStatus = (status) -> co =>
+    @status = status
+    yield @save()
+
   if index
     schema.path('status').index true
