@@ -4,7 +4,7 @@ mongoose                 = require 'mongoose'
 StatusModelPlugin        = require '../model-plugins/status_model_plugin'
 
 
-module.exports = TaskExecutionSchema = mongoose.Shema {
+module.exports = TaskExecutionSchema = mongoose.Schema {
 
   task:
     type:         mongoose.Schema.Types.ObjectId
@@ -14,7 +14,7 @@ module.exports = TaskExecutionSchema = mongoose.Shema {
 
   result:         mongoose.Schema.Types.Mixed
 
-  error:          mongoose.Schema.Types.Mixed
+  error:          String
 
   stats:
     start:        Date
@@ -41,13 +41,13 @@ TaskExecutionSchema
   .get () -> @status == 'FAILED'
 
 
-TaskExecution.methods._succeed = (result) -> co =>
+TaskExecutionSchema.methods._succeed = (result) -> co =>
   @result     = result
   @stats.end  = Date.now()
   yield @updateStatus 'SUCCESS'
 
 
-TaskExecution.methods._fail = (err) -> co =>
+TaskExecutionSchema.methods._fail = (err) -> co =>
   @error      = err
   @stats.end  = Date.now()
   yield @updateStatus 'FAILED'

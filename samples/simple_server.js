@@ -1,5 +1,6 @@
-var ExecutionCounterTaskSchema, UserSchema, co, nodeswork, nw;
+var _, ExecutionCounterTaskSchema, UserSchema, co, nodeswork, nw;
 
+_  = require('underscore');
 co = require('co');
 
 nodeswork = require('../lib/index');
@@ -12,6 +13,9 @@ nw = nodeswork.extend({
     tasks:            true
   }
 });
+
+console.log('???', _.keys(nodeswork.Models));
+console.log('???xxx', _.keys(nw.Models));
 
 UserSchema = nodeswork.mongoose.Schema({
   username: String
@@ -30,6 +34,14 @@ nw.model('User', UserSchema, {
   }
 });
 
+ExecutionSubTaskSchema = nw.Models.Task.schema.extend({
+});
+
+ExecutionSubTaskSchema.methods.execute = function* () {
+  console.log("SUB IS BEING EXECUTE.");
+  return 12345;
+};
+
 ExecutionCounterTaskSchema = nw.Models.Task.schema.extend({
   numOfExecutions: {
     type: Number,
@@ -37,18 +49,20 @@ ExecutionCounterTaskSchema = nw.Models.Task.schema.extend({
   }
 });
 
-ExecutionCounterTaskSchema.methods.execute = function* (nw) {
-  console.log('?????????????????????????????', this.numOfExecutions);
+ExecutionCounterTaskSchema.methods.execute = function* () {
+  var subValue = yield this.subTask(this.Models.ExecutionSubTask, {});
+  console.log('Execution:', this.numOfExecutions, 'sub:', subValue);
   return this.numOfExecutions++;
 };
 
+nw.task('ExecutionSubTask', ExecutionSubTaskSchema);
 nw.task('ExecutionCounterTask', ExecutionCounterTaskSchema);
 
 co(function*() {
   var ins, task;
   ins = (yield nw.Tasks.ExecutionCounterTask.findOne({}));
   if (ins == null) {
-    task = (yield nw.Tasks.ExecutionCounterTask.create({
+    ins = (yield nw.Tasks.ExecutionCounterTask.create({
       scheduler: {
         kind: 'SINCE_LAST_EXECUTION',
         duration: 10000,
@@ -58,7 +72,9 @@ co(function*() {
   }
   ins.status = 'IDLE';
   yield ins.save();
-  return nw.Models.Task.startTaskExecutor();
+})
+.catch(function (err) {
+  console.log('err', err);
 });
 
 nw.start();

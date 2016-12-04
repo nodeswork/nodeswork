@@ -1,4 +1,5 @@
 # StatusSchemaPlugin is a Mongoose schema plugin which provides status fields.
+co = require 'co'
 
 module.exports = StatusModelPlugin = (schema, {
   choices = ['ACTIVE', 'INACTIVE'],
@@ -7,12 +8,13 @@ module.exports = StatusModelPlugin = (schema, {
 } = {}) ->
 
   schema.add {
-    status:  type: String, enum: choices, default: defaultChoice
+    status:
+      type:     String
+      enum:     choices
+      default:  defaultChoice
+      index:    index
   }
 
   schema.methods.updateStatus = (status) -> co =>
     @status = status
     yield @save()
-
-  if index
-    schema.path('status').index true

@@ -25,6 +25,13 @@ process.on 'uncaughtException', (err) ->
   console.log 'uncaughtException', err
 
 
+winston.configure {
+  transports: [
+    new (winston.transports.Console) colorize: true, timestamp: true
+  ]
+}
+
+
 defaultOptions = {
   moduleName:         'sampleModule'
   dbAddress:          'mongodb://localhost/test'
@@ -61,17 +68,20 @@ Nodeswork.prototype.Nodeswork = Nodeswork
 
 
 Nodeswork.prototype.extend = (options = {}) ->
-  newNW = owlDeepcopy.deepCopy @
-  _.extend newNW.options, options
-  newNW.mongoose = @mongoose
-  newNW.server   = @server
-  newNW
+  newNw = new Nodeswork _.extend {}, @options, options
+  _.each @ModelPlugins, (plugin, name) ->
+    newNw.modelPlugin name, plugin
+  _.each @Tasks, (task, name) ->
+    newNw.task name, task.schema
+  _.each @Models, (model, name) ->
+    newNw.model name, model.schema unless newNw.Models[name]?
+  newNw
 
 
 Nodeswork.prototype.model = (modelName, modelSchema, {
   apiExposed = {}
 } = {}) ->
-  winston.info "Registering model #{modelName}."
+  winston.info "For module #{@options.moduleName}, register new model #{modelName}."
 
   _.defaults apiExposed, {
     methods:      []
@@ -92,12 +102,10 @@ Nodeswork.prototype.model = (modelName, modelSchema, {
 
   modelSchema.statics.Models = @Models
   modelSchema.statics.Tasks  = @Tasks
-  modelSchema.virtual 'Models'
-    .get => @Models
-  modelSchema.virtual 'Tasks'
-    .get => @Tasks
-  modelSchema.virtual 'nw'
-    .get => @
+  modelSchema.statics.nw     = @
+  modelSchema.virtual('Models').get -> @schema.statics.Models
+  modelSchema.virtual('Tasks').get -> @schema.statics.Tasks
+  modelSchema.virtual('nw').get -> @schema.statics.nw
   @Models[modelName] = model = @mongoose.model modelName, modelSchema
 
   _.each apiExposed.methods, (method) => switch method
@@ -248,7 +256,6 @@ Nodeswork.prototype.start = () ->
 
   if @options.components.tasks
     @taskEngine = new TaskEngine nw: @
-
 
   if @options.components.server
     @router.use '/api/v1', @api.routes(), @api.allowedMethods()

@@ -25,21 +25,21 @@ module.exports = TaskSchema = mongoose.Schema {
 
     kind:
       type:       String
-      enum:       ['SINCE_LAST_EXECUTION', 'FIXED_DURATION', 'RUN_ONCE']
+      enum:       ['SINCE_LAST_EXECUTION', 'FIXED_DURATION', 'ONCE']
       default:    'ONCE'
       required:   yes
 
     duration:     # in millisecond
       type:       Number
+      min:        [0, 'Duration must be non-negative.']
 
     priority:
       type:       Number
       default:    3
 
   # Time for next execution
-  nextExecution:
+  nextExecutionTime:
     type:         Date
-    required:     yes
     default:      Date.now
 
   # Reference to last execution result.
@@ -55,21 +55,22 @@ module.exports = TaskSchema = mongoose.Schema {
   .plugin TagableModelPlugin
 
 
-TaskSchema.pre 'save', (next) ->
+TaskSchema.pre 'validate', (next) ->
+  @rootTask ?= @_id
   next()
 
 
 TaskSchema.statics._findNextRunnableTask = -> co =>
 
   query = {
-    'nextExecution':
+    nextExecutionTime:
       '$lte': new Date
-    'status': 'IDLE'
+    status: 'IDLE'
   }
 
   yield @findOneAndUpdate(query, {
     '$set':
-      'status': 'LOADING'
+      status: 'LOADING'
   }, {
     new: true, sort:'priority'
   })
@@ -79,35 +80,36 @@ TaskSchema.methods.execute = () ->
 
 
 # Create sub task and return immiedieately.
-TaskSchema.methods.createSubTask = (doc) -> co =>
-  subTask = yield @Models.Task.create _.extend {}, doc, {
+TaskSchema.methods.createSubTask = (Model, doc) -> co =>
+  subTask = yield Model.create _.extend {}, doc, {
     rootTask:    @rootTask
     parentTask:  @
   }
 
 
 # Execute sub task and wait for the result.
-TaskSchema.methods.subTask = (doc) -> co =>
+TaskSchema.methods.subTask = (Model, doc) -> co =>
   # TODO: check task type must be ONCE
+  _.defaults doc, scheduler: {}
   doc.scheduler.kind = 'ONCE'
 
-  subTask    = yield @createSubTask doc
+  subTask    = yield @createSubTask Model, doc
   execution  = null
 
   yield new Promise (resolve, reject) =>
     count = 0
 
     checkResult = () => co =>
+      subTask   = yield @Models.Task.findById subTask._id unless subTask.lastExecution?
       return unless subTask.lastExecution?
-      execution = yield @Models.TaskExecution.findById t.lastExecution
+      execution = yield @Models.TaskExecution.findById subTask.lastExecution
 
       if execution.isDone or count++ > 1000
         clearInterval cid
         switch
           when execution.isSuccess then resolve execution.result
           when execution.isFailed  then reject execution.error
-          when count > 1000
-            reject new Error 'Task running timeout (100s).'
+          when count > 1000 then reject new Error 'Task runs timeout (100s).'
 
     cid = setInterval checkResult, 100
 
@@ -118,13 +120,13 @@ TaskSchema.methods._start = (execution) -> co =>
 
 
 TaskSchema.methods._succeed = (execution, result) -> co =>
-  @lastExecution  = execution
-  @nextExecution  = switch @scheduler.kind
+  @lastExecution       = execution
+  @nextExecutionTime   = switch @scheduler.kind
     when 'ONCE' then null
     when 'SINCE_LAST_EXECUTION'
       new Date(execution.stats.start.getTime() + @scheduler.duration)
     when 'FIXED_DURATION'
-      new Date(nextExecution.getTime() + @scheduler.duration)
+      new Date(nextExecutionTime.getTime() + @scheduler.duration)
     else null
   yield execution._succeed result
   yield @updateStatus switch @scheduler.kind
