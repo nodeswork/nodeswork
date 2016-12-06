@@ -8,6 +8,8 @@ mongooseSchemaExtend    = require 'mongoose-schema-extend'
 owlDeepcopy             = require 'owl-deepcopy'
 winston                 = require 'winston'
 
+GridfsStream            = require 'gridfs-stream'
+
 DescriptiveModelPlugin  = require './model-plugins/descriptive_model_plugin'
 StatusModelPlugin       = require './model-plugins/status_model_plugin'
 TagableModelPlugin      = require './model-plugins/tagable_model_plugin'
@@ -250,9 +252,10 @@ Nodeswork.prototype.task  = (taskName, taskSchema, opts) ->
 
 Nodeswork.prototype.start = () ->
   if @options.components.database
-    @mongoose.connection.once 'open', ->
+    @mongoose.connection.once 'open', =>
       winston.info 'Mongoose connection has been established.'
     @mongoose.connect @options.dbAddress
+    @gfs = GridfsStream @mongoose.connection.db, @mongoose.mongo
 
   if @options.components.tasks
     @taskEngine = new TaskEngine nw: @

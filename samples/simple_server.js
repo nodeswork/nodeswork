@@ -1,7 +1,9 @@
-var _, ExecutionCounterTaskSchema, UserSchema, co, nodeswork, nw;
+var _, ExecutionCounterTaskSchema, UserSchema, co, nodeswork, nw, fs, stream;
 
 _  = require('underscore');
 co = require('co');
+fs = require('fs');
+stream = require('stream');
 
 nodeswork = require('../lib/index');
 
@@ -52,6 +54,21 @@ ExecutionCounterTaskSchema = nw.Models.Task.schema.extend({
 ExecutionCounterTaskSchema.methods.execute = function* () {
   var subValue = yield this.subTask(this.Models.ExecutionSubTask, {});
   console.log('Execution:', this.numOfExecutions, 'sub:', subValue);
+
+  s = new stream.Readable;
+  s.push("content " + this.numOfExecutions);
+  s.push(null);
+
+  ws = nw.gfs.createWriteStream();
+
+  piped = s.pipe(ws);
+
+  ws.on('close', function (file) {
+    rs = nw.gfs.createReadStream({_id: ws.id});
+    rs.pipe(process.stdout);
+  });
+
+
   return this.numOfExecutions++;
 };
 
