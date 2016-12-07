@@ -19,6 +19,7 @@
     "gridfs-stream": "^1.1.1",
     "koa": "^2.0.0",
     "koa-bodyparser": "^3.2.0",
+    "koa-jade-render": "^1.0.0",
     "koa-router": "^7.0.0",
     "mongoose": "^4.3.4",
     "mongoose-schema-extend": "https://github.com/nodeswork/mongoose-schema-extend.git",

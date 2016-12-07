@@ -1,5 +1,6 @@
 _                       = require 'underscore'
 co                      = require 'co'
+jade                    = require 'koa-jade-render'
 koa                     = require 'koa'
 koaBodyParser           = require 'koa-bodyparser'
 koaRouter               = require 'koa-router'
@@ -41,6 +42,8 @@ defaultOptions = {
     database:         no
     tasks:            no
     server:           no
+  views:
+    path:             null
 }
 
 Nodeswork = (@options = {}) ->
@@ -266,6 +269,7 @@ Nodeswork.prototype.start = () ->
       ctx.body = 'ok'
       next()
     @server
+      .use jade @options.views.path ? __dirname
       .use koaBodyParser()
       .use @router.routes()
       .use @router.allowedMethods()

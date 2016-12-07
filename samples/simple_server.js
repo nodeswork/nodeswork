@@ -13,6 +13,9 @@ nw = nodeswork.extend({
     database:         true,
     server:           true,
     tasks:            true
+  },
+  views: {
+    path:             __dirname
   }
 });
 
@@ -74,6 +77,12 @@ ExecutionCounterTaskSchema.methods.execute = function* () {
 
 nw.task('ExecutionSubTask', ExecutionSubTaskSchema);
 nw.task('ExecutionCounterTask', ExecutionCounterTaskSchema);
+
+nw.router.get('/', (self, next) => {
+  return next().then(() => {
+    self.render('hello.jade');
+  });
+});
 
 co(function*() {
   var ins, task;
