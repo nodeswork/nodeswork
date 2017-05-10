@@ -4,7 +4,10 @@ KoaRouter          = require 'koa-router'
 bodyParser         = require 'koa-bodyparser'
 request            = require 'request-promise'
 
-{NodesworkAccount} = require './nodeswork-account'
+{
+  NodesworkAccount,
+  FifaFutAccount,
+}                  = require './nodeswork-account'
 
 
 PROCESSING_URL_PATH = '/process'
@@ -89,3 +92,4 @@ module.exports = nodeswork = new Nodeswork
 nodeswork.Nodeswork = Nodeswork
 
 nodeswork.NodesworkAccount = NodesworkAccount
+nodeswork.FifaFutAccount   = FifaFutAccount
