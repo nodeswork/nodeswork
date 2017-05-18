@@ -1,16 +1,35 @@
-nodeswork      = require '../src'
+nodeswork      = require '../../src'
+
+
+# nodeswork
+  # .use nodeswork.FifaFutAccount
 
 
 nodeswork
-  .use nodeswork.FifaFutAccount
 
+  .config {
+    server: 'http://localhost:3000'
+    port:   28888
+  }
 
-nodeswork
-
-  .use (ctx) ->
+  .process (ctx) ->
     account = ctx.accounts[0]
+    console.log 'user', ctx.user
     console.log 'account', account
-    console.log await account.getCredits()
+    # console.log await account.getCredits()
+
+    # console.log await account.search {
+      # cat: 'contract'
+      # lev: 'gold'
+      # type: 'development'
+      # minb: 200
+      # maxb: 300
+    # }
 
 
-nodeswork.start()
+# nodeswork.config 'env'
+# nodeswork.config 'server'
+
+
+nodeswork.start () ->
+  console.log 'started.'
