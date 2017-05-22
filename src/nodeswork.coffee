@@ -69,6 +69,9 @@ class Nodeswork
       url: "#{@opts.server}#{opts.url}"
     }
 
+  requestDefaults: (opts) ->
+    @requestClient = @requestClient.defaults opts
+
   start: (cb) ->
     @config @_opts
 
@@ -113,6 +116,7 @@ fetchRequiredInformation = (nw, ctx, next) ->
   }
   [ctx.user, ctx.configs]  = [user, configs]
   ctx.accounts             = parseAccount nw, accounts
+  ctx.nodeswork            = nw
 
   await next()
 
