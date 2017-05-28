@@ -35,9 +35,9 @@ class Nodeswork
   # @param opts [Object] config current nodeswork instance.
   # @param opts [String] retrieve the config value for this key.
   config: (opts) ->
-    if _.isString opts then return @opts[opts]
+    if _.isString(opts) then return @opts[opts]
 
-    @_opts  = opts
+    _.extend @_opts, opts
     keys    = _.filter _.keys(process.env), (x) -> x.startsWith 'NW_'
     envOpts = _.object _.map keys, (key) -> [key.substring(3), process.env[key]]
 
@@ -107,16 +107,24 @@ fetchRequiredInformation = (nw, ctx, next) ->
     ctx.response.status = 400
     return
 
+  appletId     = nw.config 'appletId'
+  appletToken  = nw.config 'appletToken'
+
+  unless appletId? and appletToken?
+    throw new Error "Applet id or applet token is missing in configuration."
+
   ctx.userId                = ctx.request.body.userId
-  {user, configs, accounts} = await nw.request {
-    method:      'GET'
-    url:         "/api/v1/applet/user/#{ctx.userId}"
+  {user, userApplet}        = await nw.request {
+    method:            'GET'
+    url:               "/api/v1/applet-api/#{appletId}/users/#{ctx.userId}"
     qs:
-      accounts:  true
+      accounts:        true
+    headers:
+      'applet-token':  appletToken
   }
-  [ctx.user, ctx.configs]  = [user, configs]
-  ctx.accounts             = parseAccount nw, accounts
-  ctx.nodeswork            = nw
+  [ctx.user, ctx.userApplet]   = [user, userApplet]
+  ctx.accounts                 = parseAccount nw, ctx.userApplet?.accounts ? []
+  ctx.nodeswork                = nw
 
   await next()
 

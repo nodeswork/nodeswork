@@ -2,7 +2,7 @@
   "author": "Nodeswork<andy@nodeswork.com>",
   "name": "nodeswork",
   "description": "Nodeswork is a framework to build simple applications and to deploy to user's devices.",
-  "version": "0.0.2",
+  "version": "0.0.10",
   "repository": {
     "type": "git",
     "url": "git@github.com:nodeswork/nodeswork.git"
@@ -22,9 +22,6 @@
     "request-promise": "^4.2.1",
     "underscore": "^1.8.3",
     "winston": "^2.3.0"
-  },
-  "devDependencies": {
-    "coffee-script": "^1.11.0"
   },
   "keywords": [
     "nodeswork"

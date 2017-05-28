@@ -6,7 +6,7 @@ init:
 	npm install
 
 docs:
-	docco src/*.coffee
+	codo
 
 clean-docs:
 	rm -rf docs/
@@ -21,4 +21,3 @@ dist: clean init docs build test
 
 publish: dist
 	npm publish
-
