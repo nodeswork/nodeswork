@@ -115,28 +115,45 @@ fetchRequiredInformation = (nw, ctx, next) ->
     ctx.response.status = 400
     return
 
-  appletId     = nw.config 'appletId'
-  appletToken  = nw.config 'appletToken'
+  startTime    = Date.now()
 
-  unless appletId? and appletToken?
-    throw new Error "Applet id or applet token is missing in configuration."
+  try
 
-  ctx.userId                 = ctx.request.body.userId
-  {user, userApplet, applet} = await nw.request {
-    method:            'GET'
-    url:               "/api/v1/applet-api/#{appletId}/users/#{ctx.userId}"
-    qs:
-      accounts:        true
-    headers:
-      'applet-token':  appletToken
-  }
-  _.extend ctx, user: user, userApplet: userApplet, applet: applet
+    appletId     = nw.config 'appletId'
+    appletToken  = nw.config 'appletToken'
 
-  ctx.accounts    = parseAccount nw, ctx.userApplet?.accounts ? []
-  ctx.nodeswork   = nw
-  ctx.components  = createComponents nw, ctx
+    unless appletId? and appletToken?
+      throw new Error "Applet id or applet token is missing in configuration."
 
-  await next()
+    ctx.userId                 = ctx.request.body.userId
+    {user, userApplet, applet} = await nw.request {
+      method:            'GET'
+      url:               "/api/v1/applet-api/#{appletId}/users/#{ctx.userId}"
+      qs:
+        accounts:        true
+      headers:
+        'applet-token':  appletToken
+    }
+    _.extend ctx, user: user, userApplet: userApplet, applet: applet
+
+    ctx.accounts    = parseAccount nw, ctx.userApplet?.accounts ? []
+    ctx.nodeswork   = nw
+    ctx.components  = createComponents nw, ctx
+
+    await next()
+
+    ctx.body = {
+      status:    'okay'
+      duration:  Date.now() - startTime
+    }
+
+  catch e
+    ctx.body = {
+      status:   'error'
+      message:  e.message
+      duration:  Date.now() - startTime
+    }
+    ctx.response.status = 500
 
 
 parseAccount = (nw, accounts) ->
