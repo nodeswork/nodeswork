@@ -1,13 +1,19 @@
-_                  = require 'underscore'
+_                    = require 'underscore'
 
 {
-  NodesworkAccount,
-  FifaFutAccount,
-}                  = require './nodeswork-account'
+  NodesworkAccount
+  FifaFutAccount
+}                    = require './nodeswork-account'
+{
+  NodesworkComponent
+  Messager
+}                    = require './nodeswork-component'
 
-nodeswork          = require './nodeswork'
+nodeswork            = require './nodeswork'
 
 module.exports = _.extend nodeswork, {
-  NodesworkAccount: NodesworkAccount
-  FifaFutAccount:   FifaFutAccount
+  NodesworkAccount:    NodesworkAccount
+  FifaFutAccount:      FifaFutAccount
+  NodesworkComponent:  NodesworkComponent
+  Messager:            Messager
 }

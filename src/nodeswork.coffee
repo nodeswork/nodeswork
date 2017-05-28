@@ -1,4 +1,5 @@
 _                   = require 'underscore'
+Case                = require 'case'
 Koa                 = require 'koa'
 KoaRouter           = require 'koa-router'
 bodyParser          = require 'koa-bodyparser'
@@ -19,12 +20,13 @@ request             = require 'request-promise'
 class Nodeswork
 
   constructor: (@_opts={}) ->
-    @opts          = {}
+    @opts            = {}
     @config @_opts
-    @app           = new Koa
-    @router        = new KoaRouter
-    @processes     = []
-    @accountClazz  = {}
+    @app             = new Koa
+    @router          = new KoaRouter
+    @processes       = []
+    @accountClazz    = {}
+    @componentClazz  = {}
 
     @router
       .post PROCESSING_URL_PATH, _.bind fetchRequiredInformation, null, @
@@ -55,6 +57,12 @@ class Nodeswork
     _.each accountClazz, (cls) =>
       @accountClazz[cls.name]  = cls
       cls::nodeswork           = @
+    @
+
+  withComponent: (components...) ->
+    _.each components, (cls) =>
+      @componentClazz[cls.name]   = cls
+      cls::nodeswork              = @
     @
 
   process: (middlewares...) ->
@@ -113,8 +121,8 @@ fetchRequiredInformation = (nw, ctx, next) ->
   unless appletId? and appletToken?
     throw new Error "Applet id or applet token is missing in configuration."
 
-  ctx.userId                = ctx.request.body.userId
-  {user, userApplet}        = await nw.request {
+  ctx.userId                 = ctx.request.body.userId
+  {user, userApplet, applet} = await nw.request {
     method:            'GET'
     url:               "/api/v1/applet-api/#{appletId}/users/#{ctx.userId}"
     qs:
@@ -122,9 +130,11 @@ fetchRequiredInformation = (nw, ctx, next) ->
     headers:
       'applet-token':  appletToken
   }
-  [ctx.user, ctx.userApplet]   = [user, userApplet]
-  ctx.accounts                 = parseAccount nw, ctx.userApplet?.accounts ? []
-  ctx.nodeswork                = nw
+  _.extend ctx, user: user, userApplet: userApplet, applet: applet
+
+  ctx.accounts    = parseAccount nw, ctx.userApplet?.accounts ? []
+  ctx.nodeswork   = nw
+  ctx.components  = createComponents nw, ctx
 
   await next()
 
@@ -133,6 +143,14 @@ parseAccount = (nw, accounts) ->
   _.map accounts, (account) ->
     act = new nw.accountClazz[account.accountType]
     _.extend act, account
+
+createComponents = (nw, ctx) ->
+  _.object _.map nw.componentClazz, (cls) ->
+    component = new cls user: ctx.user, userApplet: ctx.userApplet, applet: ctx.applet
+    [
+      Case.camel cls.name
+      component
+    ]
 
 
 PROCESSING_URL_PATH = '/process'
