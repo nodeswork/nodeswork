@@ -1,11 +1,22 @@
 _ = require 'underscore'
 
+# Base Nodeswork Component class.
+#
 exports.NodesworkComponent = class NodesworkComponent
 
-  constructor: ({@user, @userApplet, @applet}) ->
+  # Ctx will be passed in as parameter, deconstruct what you need within
+  # constructor.
+  constructor: (ctx) ->
+
+  # Called within nodeswork.start().
+  @initialize: () ->
 
 
 exports.Messager = class Messager extends NodesworkComponent
+
+  constructor: (ctx) ->
+    super ctx
+    {@user, @applet} = ctx
 
   sendMessage: (opts) ->
     if _.isString opts then opts = message: opts
@@ -17,8 +28,6 @@ exports.Messager = class Messager extends NodesworkComponent
     @nodeswork.request {
       method:            'POST'
       url:               url
-      headers:
-        'applet-token':  @nodeswork.config 'appletToken'
       body:
         message:         message
     }
