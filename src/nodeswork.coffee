@@ -4,6 +4,7 @@ Koa                 = require 'koa'
 KoaRouter           = require 'koa-router'
 bodyParser          = require 'koa-bodyparser'
 request             = require 'request-promise'
+url                 = require 'url'
 
 # Base Nodeswork class.
 #
@@ -74,7 +75,7 @@ class Nodeswork
 
   request: (opts) ->
     @requestClient _.extend {}, opts, {
-      url: "#{@opts.server}#{opts.url}"
+      url: url.resolve @opts.server, opts.url
     }
 
   requestDefaults: (opts) ->
@@ -118,12 +119,8 @@ fetchRequiredInformation = (nw, ctx, next) ->
   startTime    = Date.now()
 
   try
-
-    appletId     = nw.config 'appletId'
-    appletToken  = nw.config 'appletToken'
-
-    unless appletId? and appletToken?
-      throw new Error "Applet id or applet token is missing in configuration."
+    unless (appletId = nw.config 'appletId')?
+      throw new Error "Applet id is missing in configuration."
 
     ctx.userId                 = ctx.request.body.userId
     {user, userApplet, applet} = await nw.request {
@@ -131,8 +128,6 @@ fetchRequiredInformation = (nw, ctx, next) ->
       url:               "/api/v1/applet-api/#{appletId}/users/#{ctx.userId}"
       qs:
         accounts:        true
-      headers:
-        'applet-token':  appletToken
     }
     _.extend ctx, user: user, userApplet: userApplet, applet: applet
 
