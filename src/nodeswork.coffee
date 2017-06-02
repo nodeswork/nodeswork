@@ -50,8 +50,13 @@ class Nodeswork
       when 'DEV' then _.extend @opts, envOpts, opts
       when 'PROD' then _.extend @opts, opts, envOpts
 
-    @opts.env = env
-    @jar      = @opts.jar ? request.jar()
+    @opts.env       = env
+    @jar            = @opts.jar ? request.jar()
+    @requestClient  = request.defaults {
+      jar:                 @jar
+      followAllRedirects:  true
+      json:                true
+    }
     @
 
   withAccount: (accountClazz...) ->
@@ -89,12 +94,6 @@ class Nodeswork
 
     unless @opts.port?
       throw new Error "Required configuration 'port' is missing."
-
-    @requestClient = request.defaults {
-      jar:                 @jar
-      followAllRedirects:  true
-      json:                true
-    }
 
     @app
       .use bodyParser()
