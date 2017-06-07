@@ -9,7 +9,8 @@
   },
   "main": "lib/index.js",
   "scripts": {
-    "start": "make build && node samples/simple_server.js"
+    "start": "make build && node samples/simple_server.js",
+    "docs": "codo"
   },
   "engines": {
     "node": ">= 4.0"
@@ -19,6 +20,7 @@
     "koa": "^2.2.0",
     "koa-bodyparser": "^4.2.0",
     "koa-router": "^7.0.0",
+    "nodeswork-utils": "^0.0.2",
     "request": "^2.81.0",
     "request-promise": "^4.2.1",
     "underscore": "^1.8.3",

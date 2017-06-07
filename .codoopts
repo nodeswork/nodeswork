@@ -1,0 +1,11 @@
+--name       "Nodeswork"
+--readme     README.md
+--title      "Nodeswork Documentation"
+--private
+--quiet
+--extension  coffee
+--output     ./doc
+./src
+-
+LICENSE
+CHANGELOG.md
