@@ -2,7 +2,7 @@
   "author": "Nodeswork<andy@nodeswork.com>",
   "name": "nodeswork",
   "description": "Nodeswork is a framework to build simple applications and to deploy to user's devices.",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "repository": {
     "type": "git",
     "url": "git@github.com:nodeswork/nodeswork.git"
