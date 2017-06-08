@@ -40,6 +40,19 @@ class TwitterAccount extends NodesworkAccount
       options:  options
     }
 
+  # Updates the authenticating user’s current status, also known as Tweeting.
+  #
+  # @option options {String} status required, The text of the status update,
+  #   typically up to 140 characters.
+  # @option options {ID} in_reply_to_status_id The ID of an existing status that
+  #   the update is in reply to.
+  tweet: (options) ->
+    @operate {
+      method:   'POST'
+      path:     'statuses/update'
+      options:  options
+    }
+
 
 module.exports = {
   TwitterAccount
