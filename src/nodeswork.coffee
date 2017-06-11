@@ -65,11 +65,9 @@ class Nodeswork
       cls::nodeswork           = @
     @
 
-  withComponent: (components...) ->
-    _.each components, (cls) =>
-      @componentClazz[cls.name]   = cls
-      cls::nodeswork              = @
-    @
+  withComponent: (componentCls, options={}) ->
+    @componentClazz[componentCls.name]    = [componentCls, options]
+    componentCls::nodeswork               = @
 
   process: (middlewares...) ->
     Array::push.apply @processes, middlewares
@@ -86,7 +84,7 @@ class Nodeswork
   requestDefaults: (opts) ->
     @requestClient = @requestClient.defaults opts
 
-  start: (cb) ->
+  start: () ->
     @config @_opts
 
     unless @opts.server?
@@ -95,11 +93,18 @@ class Nodeswork
     unless @opts.port?
       throw new Error "Required configuration 'port' is missing."
 
-    @app
-      .use bodyParser()
-      .use @router.routes()
-      .use @router.allowedMethods()
-      .listen @opts.port, cb
+    for name, [cls, options] of @componentClazz
+      await cls.initialize(options)
+
+    new Promise (resolve, reject) =>
+      @app
+        .use bodyParser()
+        .use @router.routes()
+        .use @router.allowedMethods()
+        .listen @opts.port, (err) ->
+          if err? then reject err
+          else resolve @
+
 
   _operate: (account, opts={}) ->
     @request {
@@ -128,6 +133,11 @@ fetchRequiredInformation = (nw, ctx, next) ->
       qs:
         accounts:        true
     }
+    console.log {
+      user: user
+      userApplet: userApplet
+      applet: applet
+    }
     _.extend ctx, user: user, userApplet: userApplet, applet: applet
 
     ctx.accounts    = parseAccount nw, ctx.userApplet?.accounts ? []
@@ -143,8 +153,11 @@ fetchRequiredInformation = (nw, ctx, next) ->
 
   catch e
     ctx.body = {
-      status:   'error'
-      message:  e.message
+      status:    'error'
+      error:
+        message: e.message
+        stack:   e.stack
+        details: e.details
       duration:  Date.now() - startTime
     }
     ctx.response.status = 500
@@ -156,7 +169,7 @@ parseAccount = (nw, accounts) ->
     _.extend act, account
 
 createComponents = (nw, ctx) ->
-  _.object _.map nw.componentClazz, (cls) ->
+  _.object _.map nw.componentClazz, ([cls, options]) ->
     component = new cls user: ctx.user, userApplet: ctx.userApplet, applet: ctx.applet
     [
       Case.camel cls.name

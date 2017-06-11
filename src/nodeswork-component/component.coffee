@@ -18,4 +18,9 @@ class NodesworkComponent
   #   instance.
   #
   # @return [Promise<void>]
-  @initialize: () ->
+  @initialize: (options) ->
+
+
+module.exports = {
+  NodesworkComponent
+}

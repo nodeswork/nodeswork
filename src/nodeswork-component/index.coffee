@@ -1,9 +1,11 @@
 _                     = require 'underscore'
 {NodesworkComponent}  = require './component'
 {Messager}            = require './messager'
+{Mongoose}            = require './mongoose'
 
 
 module.exports = {
-  NodesworkComponent
   Messager
+  Mongoose
+  NodesworkComponent
 }
