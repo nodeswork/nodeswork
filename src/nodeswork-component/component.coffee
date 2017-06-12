@@ -20,6 +20,11 @@ class NodesworkComponent
   # @return [Promise<void>]
   @initialize: (options) ->
 
+  # Triggered when serice starts to run.
+  #
+  # @return [Promise<void>]
+  @initialized: (options) ->
+
 
 module.exports = {
   NodesworkComponent

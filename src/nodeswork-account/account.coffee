@@ -1,4 +1,5 @@
-{Module}     = require 'nodeswork-utils'
+{ validator
+  Module }     = require 'nodeswork-utils'
 
 
 # Base Nodeswork Account class.
@@ -16,7 +17,28 @@ class NodesworkAccount extends Module
   #
   # @return {Promise<Result>}
   operate: (opts) ->
-    @nodeswork._operate @, opts
+    logger = @ctx?.components?.logger
+    validator.isRequired logger, details: {
+      path: 'ctx.components.logger'
+    }
+    data = {
+      account:
+        _id:              @_id
+        name:             @name
+        constructor:      @constructor.name
+        accountCategory:
+          _id:            @accountCategory._id
+          name:           @accountCategory.name
+      operate:            opts
+    }
+    try
+      await @nodeswork._operate @, opts
+      data.status = 'success'
+      logger.info 'Operate on account successfully.', data
+    catch e
+      data.status = 'error'
+      logger.error 'Operate on account failed.', data
+      throw e
 
 
 module.exports = {

@@ -36,12 +36,14 @@ class Nodeswork
     @router          = new KoaRouter
     @processes       = []
     @accountClazz    = {}
-    @componentClazz  = {}
+    @componentClazz  = []
 
     @router.post(
       PROCESSING_URL_PATH
       _.bind @_rootHandler, @
     )
+
+    @withComponent Logger
 
 
   # Either to config current nodeswork instance, or retrieve a config value.
@@ -76,8 +78,14 @@ class Nodeswork
     @
 
   withComponent: (componentCls, options={}) ->
-    @componentClazz[componentCls.name]    = [componentCls, options]
-    componentCls::nodeswork               = @
+    componentCls::nodeswork = @
+
+    for [cls, o], i in @componentClazz
+      if componentCls.name == cls.name
+        @componentClazz[i] = [componentClazz, options]
+        return @
+
+    @componentClazz.push [componentCls, options]
     @
 
   process: (middlewares...) ->
@@ -98,7 +106,6 @@ class Nodeswork
 
   start: () ->
     @config @_opts
-    @withComponent Logger
 
     validator.isRequired @opts.server, details: {
       path: 'nodeswork.config.server'
@@ -110,7 +117,7 @@ class Nodeswork
       path: 'nodeswork.config.appletId'
     }
 
-    for name, [cls, options] of @componentClazz
+    for [cls, options] in @componentClazz
       await cls.initialize(options)
 
     new Promise (resolve, reject) =>
@@ -118,9 +125,13 @@ class Nodeswork
         .use bodyParser()
         .use @router.routes()
         .use @router.allowedMethods()
-        .listen @opts.port, (err) ->
-          if err? then reject err
-          else resolve @
+        .listen @opts.port, (err) =>
+          if err? then return reject err
+
+          for [cls, options] in @componentClazz
+            await cls.initialized(options)
+
+          resolve @
 
   _operate: (account, opts={}) ->
     @request {
@@ -130,9 +141,11 @@ class Nodeswork
     }
 
   _createComponents: (ctx) ->
-    _.object _.map @componentClazz, ([ cls, options ]) ->
-      component = new cls ctx, options
-      [ Case.camel(cls.name), component ]
+    _.each @componentClazz, ([ cls, options ]) ->
+      console.log 'create component', cls.name
+      component             = new cls ctx, options
+      name                  = Case.camel(cls.name)
+      ctx.components[name]  = component
 
   _rootHandler: (ctx, next) ->
     startTime    = Date.now()
@@ -160,9 +173,10 @@ class Nodeswork
       execution       = ctx.request.headers.execution
       request         = ctx.request.headers.request
       ctx.logKey      = execution ? request
-      ctx.accounts    = @_parseAccount userApplet?.accounts ? []
+      ctx.accounts    = @_parseAccount ctx, userApplet?.accounts ? []
       ctx.nodeswork   = @
-      ctx.components  = @_createComponents ctx
+      ctx.components  = {}
+      @_createComponents ctx
 
       await next()
 
@@ -180,11 +194,12 @@ class Nodeswork
       }
       ctx.response.status = ne.details.responseCode ? 500
 
-  _parseAccount: (accounts) ->
+  _parseAccount: (ctx, accounts) ->
     _.map accounts, (account) ->
       [cls, options] = @accountClazz[account.accountType]
       act = new cls options
-      _.extend act, account
+      _.extend act, account, ctx: ctx
+      act
 
 
 module.exports = nodeswork = _.extend new Nodeswork, {

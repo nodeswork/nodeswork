@@ -30,6 +30,8 @@ class Logger extends NodesworkComponent
       extractor = (ctx) -> key: ctx.logKey
     } = options
     @::extractor = extractor
+
+  @initialized: (options) ->
     { logger } = require 'nodeswork-logger'
 
 
