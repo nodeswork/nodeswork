@@ -1,3 +1,4 @@
+_                    = require 'underscore'
 {NodesworkComponent} = require './component'
 {logger}             = require 'nodeswork-logger'
 {validator}          = require 'nodeswork-utils'
@@ -20,7 +21,9 @@ class Mongoose extends NodesworkComponent
   # @throw {NodesworkError} error when nodeswork.config('db') is missing.
   @initialize: (options={}) ->
     {
+      storeLog      = true
       logCollection = 'logs'
+      logQueryPath  = '/logs'
     } = options
 
     logger.info 'Initialize mongoose component.'
@@ -35,6 +38,12 @@ class Mongoose extends NodesworkComponent
     await @::mongoose.connect dbURI
     logger.info 'Mongoose is connected.'
 
+    @setupLogger logCollection, logQueryPath if storeLog
+
+    logger.info 'Mongoose component is initialized.'
+    return
+
+  @setupLogger: (logCollection, logQueryPath) ->
     nwLogger         = require 'nodeswork-logger'
     {MongoDB}        = require 'winston-mongodb'
     db               = @::mongoose.connections[0].db
@@ -47,10 +56,13 @@ class Mongoose extends NodesworkComponent
       mongoose:    @::mongoose
       modelName:   'Log'
     }
-
     logger           = nwLogger.logger
-    logger.info 'Mongoose component is initialized.'
-    return
+
+    @::nodeswork.view logQueryPath, _.bind @logQueryHandler, @
+
+  @logQueryHandler: (ctx, next) ->
+    {Log}     = @::mongoose.models
+    ctx.body  = await Log.find()
 
 
 module.exports = {

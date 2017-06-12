@@ -3,6 +3,7 @@ Case                     = require 'case'
 Koa                      = require 'koa'
 KoaRouter                = require 'koa-router'
 bodyParser               = require 'koa-bodyparser'
+path                     = require 'path'
 request                  = require 'request-promise'
 url                      = require 'url'
 
@@ -82,7 +83,8 @@ class Nodeswork
     @router.post.apply @router, [PROCESSING_URL_PATH].concat middlewares
     @
 
-  view: (path, middlewares...) ->
+  view: (viewPath, middlewares...) ->
+    @router.get.apply @router, [path.join "/views", viewPath].concat middlewares
 
   request: (opts) ->
     @requestClient _.extend {}, opts, {
