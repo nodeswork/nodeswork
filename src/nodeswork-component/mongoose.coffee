@@ -8,6 +8,7 @@ winston              = require 'winston'
 class Mongoose extends NodesworkComponent
 
   constructor: (ctx) ->
+    super ctx
 
 
   # Intialize Mongoose component. After intialization, Mongoose::mongoose or

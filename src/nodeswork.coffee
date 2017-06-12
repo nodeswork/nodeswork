@@ -1,10 +1,16 @@
-_                   = require 'underscore'
-Case                = require 'case'
-Koa                 = require 'koa'
-KoaRouter           = require 'koa-router'
-bodyParser          = require 'koa-bodyparser'
-request             = require 'request-promise'
-url                 = require 'url'
+_                        = require 'underscore'
+Case                     = require 'case'
+Koa                      = require 'koa'
+KoaRouter                = require 'koa-router'
+bodyParser               = require 'koa-bodyparser'
+request                  = require 'request-promise'
+url                      = require 'url'
+
+{ NodesworkError
+  validator }            = require 'nodeswork-utils'
+
+{ PROCESSING_URL_PATH }  = require './constants'
+
 
 # Base Nodeswork class.
 #
@@ -29,8 +35,10 @@ class Nodeswork
     @accountClazz    = {}
     @componentClazz  = {}
 
-    @router
-      .post PROCESSING_URL_PATH, _.bind fetchRequiredInformation, null, @
+    @router.post(
+      PROCESSING_URL_PATH
+      _.bind @_rootHandler, @
+    )
 
 
   # Either to config current nodeswork instance, or retrieve a config value.
@@ -59,15 +67,15 @@ class Nodeswork
     }
     @
 
-  withAccount: (accountClazz...) ->
-    _.each accountClazz, (cls) =>
-      @accountClazz[cls.name]  = cls
-      cls::nodeswork           = @
+  withAccount: (accountCls, options={}) ->
+    @accountClazz[accountCls.name]   = [accountCls, options]
+    cls::nodeswork                   = @
     @
 
   withComponent: (componentCls, options={}) ->
     @componentClazz[componentCls.name]    = [componentCls, options]
     componentCls::nodeswork               = @
+    @
 
   process: (middlewares...) ->
     Array::push.apply @processes, middlewares
@@ -87,11 +95,15 @@ class Nodeswork
   start: () ->
     @config @_opts
 
-    unless @opts.server?
-      throw new Error "Required configuration 'server' is missing."
-
-    unless @opts.port?
-      throw new Error "Required configuration 'port' is missing."
+    validator.isRequired @opts.server, details: {
+      path: 'nodeswork.config.server'
+    }
+    validator.isRequired @opts.port, details: {
+      path: 'nodeswork.config.port'
+    }
+    validator.isRequired @opts.appletId, details: {
+      path: 'nodeswork.config.appletId'
+    }
 
     for name, [cls, options] of @componentClazz
       await cls.initialize(options)
@@ -105,7 +117,6 @@ class Nodeswork
           if err? then reject err
           else resolve @
 
-
   _operate: (account, opts={}) ->
     @request {
       method:  'POST'
@@ -113,71 +124,59 @@ class Nodeswork
       body:    opts
     }
 
+  _createComponents: (ctx) ->
+    _.object _.map @componentClazz, ([ cls, options ]) ->
+      component = new cls user: ctx.user, userApplet: ctx.userApplet, applet: ctx.applet
+      [ Case.camel(cls.name), component ]
 
-fetchRequiredInformation = (nw, ctx, next) ->
-  unless ctx.request.body.userId?
-    ctx.response.body = error: 'missing parameter userId'
-    ctx.response.status = 400
-    return
-
-  startTime    = Date.now()
-
-  try
-    unless (appletId = nw.config 'appletId')?
-      throw new Error "Applet id is missing in configuration."
-
-    ctx.userId                 = ctx.request.body.userId
-    {user, userApplet, applet} = await nw.request {
-      method:            'GET'
-      url:               "/api/v1/applet-api/#{appletId}/users/#{ctx.userId}"
-      qs:
-        accounts:        true
-    }
-    console.log {
-      user: user
-      userApplet: userApplet
-      applet: applet
-    }
-    _.extend ctx, user: user, userApplet: userApplet, applet: applet
-
-    ctx.accounts    = parseAccount nw, ctx.userApplet?.accounts ? []
-    ctx.nodeswork   = nw
-    ctx.components  = createComponents nw, ctx
-
-    await next()
-
-    ctx.body = {
-      status:    'okay'
-      duration:  Date.now() - startTime
+  _rootHandler: (ctx, next) ->
+    startTime    = Date.now()
+    response     = {
+      name:      @config 'name'
+      appletId:  appletId = @config 'appletId'
+      params:    ctx.request.body
     }
 
-  catch e
-    ctx.body = {
-      status:    'error'
-      error:
-        message: e.message
-        stack:   e.stack
-        details: e.details
-      duration:  Date.now() - startTime
-    }
-    ctx.response.status = 500
+    try
+      validator.isRequired(
+        userId = ctx.request.headers.user
+        details:
+          path:          'headers.user'
+          responseCode:  400
+      )
+      response.userId            = userId
 
+      {user, userApplet, applet} = await @request {
+        method:            'GET'
+        url:               "/api/v1/applet-api/#{appletId}/users/#{userId}"
+      }
+      _.extend ctx, user: user, userApplet: userApplet, applet: applet
 
-parseAccount = (nw, accounts) ->
-  _.map accounts, (account) ->
-    act = new nw.accountClazz[account.accountType]
-    _.extend act, account
+      ctx.accounts    = @_parseAccount userApplet?.accounts ? []
+      ctx.nodeswork   = @
+      ctx.components  = @_createComponents ctx
 
-createComponents = (nw, ctx) ->
-  _.object _.map nw.componentClazz, ([cls, options]) ->
-    component = new cls user: ctx.user, userApplet: ctx.userApplet, applet: ctx.applet
-    [
-      Case.camel cls.name
-      component
-    ]
+      await next()
 
+      ctx.body = _.extend response, {
+        duration:  Date.now() - startTime
+        result:    ctx.body
+      }
 
-PROCESSING_URL_PATH = '/process'
+    catch e
+      ne = NodesworkError.fromError e
+      ctx.body = _.extend response, {
+        status:    'error'
+        error:     ne.toJSON()
+        duration:  Date.now() - startTime
+      }
+      ctx.response.status = ne.details.responseCode ? 500
+
+  _parseAccount: (accounts) ->
+    _.map accounts, (account) ->
+      [cls, options] = @accountClazz[account.accountType]
+      act = new cls options
+      _.extend act, account
 
 
 module.exports = nodeswork = _.extend new Nodeswork, {
