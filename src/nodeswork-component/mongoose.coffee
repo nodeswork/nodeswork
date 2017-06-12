@@ -1,16 +1,15 @@
 _                    = require 'underscore'
-{NodesworkComponent} = require './component'
 {logger}             = require 'nodeswork-logger'
 {validator}          = require 'nodeswork-utils'
 winston              = require 'winston'
 
+{NodesworkComponent} = require './component'
 
 # Provide mongoose local database access.
 class Mongoose extends NodesworkComponent
 
   constructor: (ctx) ->
     super ctx
-
 
   # Intialize Mongoose component. After intialization, Mongoose::mongoose or
   #   instance.mongoose is set to mongoose object.

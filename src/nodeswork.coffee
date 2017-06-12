@@ -12,6 +12,8 @@ url                      = require 'url'
 
 { PROCESSING_URL_PATH }  = require './constants'
 
+{ Logger }               = require './nodeswork-component/logger'
+
 
 # Base Nodeswork class.
 #
@@ -96,6 +98,7 @@ class Nodeswork
 
   start: () ->
     @config @_opts
+    @withComponent Logger
 
     validator.isRequired @opts.server, details: {
       path: 'nodeswork.config.server'
@@ -128,7 +131,7 @@ class Nodeswork
 
   _createComponents: (ctx) ->
     _.object _.map @componentClazz, ([ cls, options ]) ->
-      component = new cls user: ctx.user, userApplet: ctx.userApplet, applet: ctx.applet
+      component = new cls ctx, options
       [ Case.camel(cls.name), component ]
 
   _rootHandler: (ctx, next) ->
@@ -154,6 +157,9 @@ class Nodeswork
       }
       _.extend ctx, user: user, userApplet: userApplet, applet: applet
 
+      execution       = ctx.request.headers.execution
+      request         = ctx.request.headers.request
+      ctx.logKey      = execution ? request
       ctx.accounts    = @_parseAccount userApplet?.accounts ? []
       ctx.nodeswork   = @
       ctx.components  = @_createComponents ctx
