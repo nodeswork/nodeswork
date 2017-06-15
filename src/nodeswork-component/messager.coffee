@@ -10,14 +10,15 @@ class Messager extends NodesworkComponent
   constructor: (ctx) ->
     super ctx
     {@user, @applet} = ctx
-    validator.isRequired @user, details: path: 'ctx.user'
-    validator.isRequired @applet, details: path: 'ctx.applet'
 
   # Send message to user's message inbox.
   #
   # @option opts {String} message the message to send.
   # @return {Promise<Message>}
   sendMessage: (opts) ->
+    validator.isRequired @user, details: path: 'ctx.user'
+    validator.isRequired @applet, details: path: 'ctx.applet'
+
     if _.isString opts then opts = message: opts
 
     {message} = opts

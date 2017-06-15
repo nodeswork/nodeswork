@@ -38,10 +38,8 @@ class Nodeswork
     @accountClazz    = {}
     @componentClazz  = []
 
-    @router.post(
-      PROCESSING_URL_PATH
-      _.bind @_rootHandler, @
-    )
+    @rootHandler = _.bind @_rootHandler, @
+    @viewRootHandler = _.bind @_viewRootHandler, @
 
     @withComponent Logger
 
@@ -74,7 +72,7 @@ class Nodeswork
 
   withAccount: (accountCls, options={}) ->
     @accountClazz[accountCls.name]   = [accountCls, options]
-    cls::nodeswork                   = @
+    accountCls::nodeswork            = @
     @
 
   withComponent: (componentCls, options={}) ->
@@ -90,11 +88,22 @@ class Nodeswork
 
   process: (middlewares...) ->
     Array::push.apply @processes, middlewares
-    @router.post.apply @router, [PROCESSING_URL_PATH].concat middlewares
+    @router.post.apply(
+      @router, [PROCESSING_URL_PATH, @rootHandler].concat middlewares
+    )
     @
 
   view: (viewPath, middlewares...) ->
-    @router.get.apply @router, [path.join "/views", viewPath].concat middlewares
+    @router.get.apply(
+      @router
+      [path.join("/views", viewPath), @viewRootHandler].concat middlewares
+    )
+
+  action: (actionPath, middlewares...) ->
+    @router.post.apply(
+      @router
+      [path.join("/actions", actionPath), @viewRootHandler].concat middlewares
+    )
 
   request: (opts) ->
     @requestClient _.extend {}, opts, {
@@ -104,7 +113,9 @@ class Nodeswork
   requestDefaults: (opts) ->
     @requestClient = @requestClient.defaults opts
 
-  start: () ->
+  ready: () ->
+    return if @isReady
+
     @config @_opts
 
     validator.isRequired @opts.server, details: {
@@ -120,17 +131,22 @@ class Nodeswork
     for [cls, options] in @componentClazz
       await cls.initialize(options)
 
+    @app
+      .use bodyParser()
+      .use @router.routes()
+      .use @router.allowedMethods()
+
+    for [cls, options] in @componentClazz
+      await cls.initialized(options)
+
+    @isReady = true
+    return
+
+  start: () ->
+    @ready()
     new Promise (resolve, reject) =>
-      @app
-        .use bodyParser()
-        .use @router.routes()
-        .use @router.allowedMethods()
-        .listen @opts.port, (err) =>
+      @app.listen @opts.port, (err) =>
           if err? then return reject err
-
-          for [cls, options] in @componentClazz
-            await cls.initialized(options)
-
           resolve @
 
   _operate: (account, opts={}) ->
@@ -142,7 +158,6 @@ class Nodeswork
 
   _createComponents: (ctx) ->
     _.each @componentClazz, ([ cls, options ]) ->
-      console.log 'create component', cls.name
       component             = new cls ctx, options
       name                  = Case.camel(cls.name)
       ctx.components[name]  = component
@@ -191,6 +206,19 @@ class Nodeswork
         status:    'error'
         error:     ne.toJSON()
         duration:  Date.now() - startTime
+      }
+      ctx.response.status = ne.details.responseCode ? 500
+
+  _viewRootHandler: (ctx, next) ->
+    try
+      ctx.components  = {}
+      @_createComponents ctx
+      await next()
+    catch e
+      ne = NodesworkError.fromError e
+      ctx.body = {
+        status:    'error'
+        error:     ne.toJSON()
       }
       ctx.response.status = ne.details.responseCode ? 500
 

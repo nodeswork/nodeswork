@@ -25,7 +25,6 @@ class Mongoose extends NodesworkComponent
       logQueryPath  = '/logs'
     } = options
 
-    logger.info 'Initialize mongoose component.'
     @::mongoose          = require 'mongoose'
     @::mongoose.Promise  = global.Promise
     dbURI                = @::nodeswork.config('db')
