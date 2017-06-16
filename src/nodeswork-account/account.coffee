@@ -18,7 +18,7 @@ class NodesworkAccount extends Module
   # @return {Promise<Result>}
   operate: (opts) ->
     logger = @ctx?.components?.logger
-    validator.isRequired logger, details: {
+    validator.isRequired logger, meta: {
       path: 'ctx.components.logger'
     }
     data = {

@@ -6,6 +6,7 @@ bodyParser               = require 'koa-bodyparser'
 path                     = require 'path'
 request                  = require 'request-promise'
 url                      = require 'url'
+{ logger }               = require 'nodeswork-logger'
 
 { NodesworkError
   validator }            = require 'nodeswork-utils'
@@ -33,7 +34,7 @@ class Nodeswork
     @opts            = {}
     @config @_opts
     @app             = new Koa
-    @router          = new KoaRouter
+    @router          = new KoaRouter().use @_errorHandler
     @processes       = []
     @accountClazz    = {}
     @componentClazz  = []
@@ -118,14 +119,18 @@ class Nodeswork
 
     @config @_opts
 
-    validator.isRequired @opts.server, details: {
+    validator.isRequired @opts.server, meta: {
       path: 'nodeswork.config.server'
     }
-    validator.isRequired @opts.port, details: {
+    validator.isRequired @opts.port, meta: {
       path: 'nodeswork.config.port'
     }
-    validator.isRequired @opts.appletId, details: {
+    validator.isRequired @opts.appletId, meta: {
       path: 'nodeswork.config.appletId'
+    }
+
+    validator.isRequired @opts.appletToken, meta: {
+      path: 'nodeswork.config.appletToken'
     }
 
     for [cls, options] in @componentClazz
@@ -139,6 +144,9 @@ class Nodeswork
     for [cls, options] in @componentClazz
       await cls.initialized(options)
 
+    NodesworkError.meta = {
+      server: "http://localhost:#{@config 'port'}"
+    }
     @isReady = true
     return
 
@@ -163,51 +171,44 @@ class Nodeswork
       ctx.components[name]  = component
 
   _rootHandler: (ctx, next) ->
-    startTime    = Date.now()
     response     = {
       name:      @config 'name'
       appletId:  appletId = @config 'appletId'
       params:    ctx.request.body
     }
 
-    try
-      validator.isRequired(
-        userId = ctx.request.headers.user
-        details:
-          path:          'headers.user'
-          responseCode:  400
-      )
-      response.userId            = userId
+    validator.isRequired(
+      userId = ctx.request.headers.user
+      meta:
+        path:          'headers.user'
+        responseCode:  400
+    )
+    response.userId            = userId
 
+    try
       {user, userApplet, applet} = await @request {
         method:            'GET'
         url:               "/api/v1/applet-api/#{appletId}/users/#{userId}"
+        headers:
+          'applet-token':  @config 'appletToken'
       }
       _.extend ctx, user: user, userApplet: userApplet, applet: applet
-
-      execution       = ctx.request.headers.execution
-      request         = ctx.request.headers.request
-      ctx.logKey      = execution ? request
-      ctx.accounts    = @_parseAccount ctx, userApplet?.accounts ? []
-      ctx.nodeswork   = @
-      ctx.components  = {}
-      @_createComponents ctx
-
-      await next()
-
-      ctx.body = _.extend response, {
-        duration:  Date.now() - startTime
-        result:    ctx.body
-      }
-
     catch e
-      ne = NodesworkError.fromError e
-      ctx.body = _.extend response, {
-        status:    'error'
-        error:     ne.toJSON()
-        duration:  Date.now() - startTime
-      }
-      ctx.response.status = ne.details.responseCode ? 500
+      NodesworkError.fromError e, 'Request user and applet information failed'
+
+    execution       = ctx.request.headers.execution
+    request         = ctx.request.headers.request
+    ctx.logKey      = execution ? request
+    ctx.accounts    = @_parseAccount ctx, userApplet?.accounts ? []
+    ctx.nodeswork   = @
+    ctx.components  = {}
+    @_createComponents ctx
+
+    await next()
+
+    ctx.body = _.extend response, {
+      result:    ctx.body
+    }
 
   _viewRootHandler: (ctx, next) ->
     try
@@ -220,14 +221,37 @@ class Nodeswork
         status:    'error'
         error:     ne.toJSON()
       }
-      ctx.response.status = ne.details.responseCode ? 500
+      ctx.response.status = ne.meta.responseCode ? 500
 
   _parseAccount: (ctx, accounts) ->
-    _.map accounts, (account) ->
+    _.map accounts, (account) =>
+      validator.isRequired @accountClazz[account.accountType], {
+        message:        'Missing account class'
+        meta:
+          accountType:  account.accountType
+      }
       [cls, options] = @accountClazz[account.accountType]
       act = new cls options
       _.extend act, account, ctx: ctx
       act
+
+  _errorHandler: (ctx, next) ->
+    startTime    = Date.now()
+    try
+      logger.info 'Receive request', {
+        path:    ctx.request.path
+        method:  ctx.request.method
+      }
+      await next()
+    catch error
+      ne        = NodesworkError.fromError error
+      ctx.body  = {
+        status:  'error'
+        error:   _.omit ne.toJSON(), 'stack'
+      }
+      logger.error 'Error:', ne.toJSON()
+      ctx.response.status = ne.meta.responseCode ? 500
+      ctx.response.headers['x-duration'] = Date.now() - startTime
 
 
 module.exports = nodeswork = _.extend new Nodeswork, {

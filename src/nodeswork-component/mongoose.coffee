@@ -29,7 +29,7 @@ class Mongoose extends NodesworkComponent
     @::mongoose.Promise  = global.Promise
     dbURI                = @::nodeswork.config('db')
 
-    validator.isRequired dbURI, details: {
+    validator.isRequired dbURI, meta: {
       path: 'nodeswork.config.db'
     }
 

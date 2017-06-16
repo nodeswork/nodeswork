@@ -16,8 +16,8 @@ class Messager extends NodesworkComponent
   # @option opts {String} message the message to send.
   # @return {Promise<Message>}
   sendMessage: (opts) ->
-    validator.isRequired @user, details: path: 'ctx.user'
-    validator.isRequired @applet, details: path: 'ctx.applet'
+    validator.isRequired @user, meta: path: 'ctx.user'
+    validator.isRequired @applet, meta: path: 'ctx.applet'
 
     if _.isString opts then opts = message: opts
 
