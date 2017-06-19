@@ -10,6 +10,11 @@ class Messager extends NodesworkComponent
   constructor: (ctx) ->
     super ctx
     {@user, @applet} = ctx
+    @request = ctx.components.request
+    validator.isRequired @request, meta: {
+      path: 'ctx.components.request'
+      hints: 'Ensure request component is imported.'
+    }
 
   # Send message to user's message inbox.
   #
@@ -25,8 +30,7 @@ class Messager extends NodesworkComponent
 
     url = "#{API_PREFIX}/applet-api/#{@applet._id}/users/#{@user._id}/messages"
 
-    @nodeswork.request {
-      method:            'POST'
+    @request.post {
       url:               url
       body:
         message:         message
