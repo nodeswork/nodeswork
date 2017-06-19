@@ -1,3 +1,5 @@
+Case               = require 'case'
+{ NodesworkError } = require 'nodeswork-utils'
 
 # Base Nodeswork Component class.
 #
@@ -26,6 +28,51 @@ class NodesworkComponent
   @initialized: (options) ->
 
 
+class NodesworkComponents
+
+  constructor: (@ctx) ->
+    @cache = {}
+
+  # Register component class.
+  @register: (nodeswork, cls, options={}, overwrite=false) ->
+    @_setup()
+
+    cls::nodeswork = nodeswork
+    for [ c, o ], i in @clazz
+      if cls.name == c.name
+        unless overwrite
+          throw new NodesworkError(
+            'Component has been registered before, set overwrite=true
+            to overwrite it'
+            name: c.name
+          )
+        @clazz[i] = [ cls, options ]
+        return
+
+    @clazz.push [ cls, options ]
+    return
+
+  @initialize: () ->
+    for [ cls, options ] in @clazz
+      await cls.initialize options
+
+  @initialized: () ->
+    for [ cls, options ] in @clazz
+      await cls.initialized options
+    for [ cls, options ] in @clazz
+      name = Case.camel cls.name
+      do (cls, name) =>
+        @getter name, () ->
+          unless @cache[name]?
+            @cache[name] = new cls @ctx
+          @cache[name]
+
+  @_setup: () ->
+    unless 'clazz' in Object.getOwnPropertyNames @
+      @clazz = []
+
+
 module.exports = {
   NodesworkComponent
+  NodesworkComponents
 }

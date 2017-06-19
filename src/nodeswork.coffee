@@ -1,5 +1,4 @@
 _                        = require 'underscore'
-Case                     = require 'case'
 Koa                      = require 'koa'
 KoaRouter                = require 'koa-router'
 bodyParser               = require 'koa-bodyparser'
@@ -14,6 +13,8 @@ url                      = require 'url'
 { PROCESSING_URL_PATH }  = require './constants'
 
 { Logger }               = require './nodeswork-component/logger'
+
+{ NodesworkComponents }  = require './nodeswork-component'
 
 
 # Base Nodeswork class.
@@ -76,15 +77,8 @@ class Nodeswork
     accountCls::nodeswork            = @
     @
 
-  withComponent: (componentCls, options={}) ->
-    componentCls::nodeswork = @
-
-    for [cls, o], i in @componentClazz
-      if componentCls.name == cls.name
-        @componentClazz[i] = [componentClazz, options]
-        return @
-
-    @componentClazz.push [componentCls, options]
+  withComponent: (componentCls, options={}, overwrite=false) ->
+    NodesworkComponents.register @, componentCls, options, overwrite
     @
 
   process: (middlewares...) ->
@@ -133,18 +127,16 @@ class Nodeswork
       path: 'nodeswork.config.appletToken'
     }
 
-    for [cls, options] in @componentClazz
-      await cls.initialize(options)
+    await NodesworkComponents.initialize()
 
     @app
       .use bodyParser()
       .use @router.routes()
       .use @router.allowedMethods()
 
-    for [cls, options] in @componentClazz
-      await cls.initialized(options)
+    await NodesworkComponents.initialized()
 
-    NodesworkError.meta = {
+    _.extend NodesworkError.meta, {
       server: "http://localhost:#{@config 'port'}"
     }
     @isReady = true
@@ -163,12 +155,6 @@ class Nodeswork
       url:     "/api/v1/applet/user/#{account.user}/accounts/#{account._id}/operate"
       body:    opts
     }
-
-  _createComponents: (ctx) ->
-    _.each @componentClazz, ([ cls, options ]) ->
-      component             = new cls ctx, options
-      name                  = Case.camel(cls.name)
-      ctx.components[name]  = component
 
   _rootHandler: (ctx, next) ->
     response     = {
@@ -201,8 +187,7 @@ class Nodeswork
     ctx.logKey      = execution ? request
     ctx.accounts    = @_parseAccount ctx, userApplet?.accounts ? []
     ctx.nodeswork   = @
-    ctx.components  = {}
-    @_createComponents ctx
+    ctx.components  = new NodesworkComponents ctx
 
     await next()
 
@@ -212,8 +197,7 @@ class Nodeswork
 
   _viewRootHandler: (ctx, next) ->
     try
-      ctx.components  = {}
-      @_createComponents ctx
+      ctx.components  = new NodesworkComponents ctx
       await next()
     catch e
       ne = NodesworkError.fromError e
