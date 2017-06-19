@@ -10,11 +10,7 @@ class Messager extends NodesworkComponent
   constructor: (ctx) ->
     super ctx
     {@user, @applet} = ctx
-    @request = ctx.components.request
-    validator.isRequired @request, meta: {
-      path: 'ctx.components.request'
-      hints: 'Ensure request component is imported.'
-    }
+    @request = @depends 'request'
 
   # Send message to user's message inbox.
   #

@@ -1,5 +1,4 @@
 _                       = require 'underscore'
-{ validator }           = require 'nodeswork-utils'
 
 { NodesworkComponent }  = require './component'
 
@@ -8,11 +7,7 @@ class Request extends NodesworkComponent
 
   constructor: (ctx) ->
     super ctx
-    @logger = ctx.components.logger
-    validator.isRequired @logger, meta: {
-      path: 'ctx.components.logger'
-      hints: 'Ensure Logger component is imported before.'
-    }
+    @logger = @depends 'logger'
 
   get: (options) ->
     @request _.extend options, method: 'GET'

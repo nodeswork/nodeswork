@@ -1,5 +1,6 @@
 Case               = require 'case'
-{ NodesworkError } = require 'nodeswork-utils'
+{ NodesworkError
+  validator }      = require 'nodeswork-utils'
 
 # Base Nodeswork Component class.
 #
@@ -14,7 +15,14 @@ class NodesworkComponent
   # the constructor.
   #
   # @param [KoaContext] ctx context for the current request.
-  constructor: (ctx) ->
+  constructor: (@ctx) ->
+
+  depends: (name) ->
+    res = @ctx.components[name]
+    validator.isRequired res, meta: {
+      path: "ctx.components.#{name}"
+      hints: "Ensure component #{name} is imported."
+    }
 
   # Initialize the component.  It will be called when starting the nodeswork
   #   instance.
