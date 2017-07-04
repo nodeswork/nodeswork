@@ -61,8 +61,11 @@ class Mongoose extends NodesworkComponent
     @::nodeswork.view logQueryPath, NAMED 'queryLog', _.bind @logQueryHandler, @
 
   @logQueryHandler: (ctx, next) ->
-    {Log}     = @::mongoose.models
-    ctx.body  = await Log.find()
+    { Log }   = @::mongoose.models
+    query =
+      if ctx.request.query.key? then "meta.key": ctx.request.query.key
+      else {}
+    ctx.body  = await Log.find query
 
 
 module.exports = {

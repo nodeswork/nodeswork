@@ -176,6 +176,11 @@ class Nodeswork
       .use bodyParser()
       .use @router.routes()
       .use @router.allowedMethods()
+      .use (ctx) ->
+        logger.warn 'Uncatched request', _.pick(
+          ctx.request
+          'url', 'headers', 'method'
+        )
 
     _.extend NodesworkError.meta, {
       server: "http://localhost:#{@config 'port'}"
