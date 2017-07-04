@@ -1,9 +1,11 @@
-_                    = require 'underscore'
-{logger}             = require 'nodeswork-logger'
-{validator}          = require 'nodeswork-utils'
-winston              = require 'winston'
+_                       = require 'underscore'
+{ logger }              = require 'nodeswork-logger'
+{
+  validator
+  NAMED }               = require 'nodeswork-utils'
+winston                 = require 'winston'
 
-{NodesworkComponent} = require './component'
+{ NodesworkComponent }  = require './component'
 
 # Provide mongoose local database access.
 class Mongoose extends NodesworkComponent
@@ -56,7 +58,7 @@ class Mongoose extends NodesworkComponent
     }
     logger           = nwLogger.logger
 
-    @::nodeswork.view logQueryPath, _.bind @logQueryHandler, @
+    @::nodeswork.view logQueryPath, NAMED 'queryLog', _.bind @logQueryHandler, @
 
   @logQueryHandler: (ctx, next) ->
     {Log}     = @::mongoose.models

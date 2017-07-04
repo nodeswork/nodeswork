@@ -10,9 +10,12 @@ url                          = require 'url'
 
 
 { NodesworkError
+  NAMED
   validator }                = require 'nodeswork-utils'
 
-{ PROCESSING_URL_PATH }      = require './constants'
+{ PROCESSING_URL_PATH
+  VIEW_URL_PATH
+  ACTION_URL_PATH }          = require './constants'
 
 { Logger }                   = require './nodeswork-component/logger'
 
@@ -38,12 +41,9 @@ class Nodeswork
     @config @_opts
     @app             = new Koa
     @router          = new KoaRouter()
-    @processes       = []
+    @middlewares     = GET: {}, POST: {}
     @accountClazz    = {}
     @componentClazz  = []
-
-    @processHandler  = _.bind @_processHandler, @
-    @viewRootHandler = _.bind @_viewHandler, @
 
     @router
       .use handleRequestMiddleware
@@ -88,23 +88,23 @@ class Nodeswork
     @
 
   process: (middlewares...) ->
-    Array::push.apply @processes, middlewares
-    @router.post.apply(
-      @router, [PROCESSING_URL_PATH, @processHandler].concat middlewares
+    @middlewares.POST[PROCESSING_URL_PATH] ?= []
+    @middlewares.POST[PROCESSING_URL_PATH] = (
+      @middlewares.POST[PROCESSING_URL_PATH].concat middlewares
     )
     @
 
   view: (viewPath, middlewares...) ->
-    @router.get.apply(
-      @router
-      [path.join("/views", viewPath), @viewRootHandler].concat middlewares
-    )
+    fullPath                    = path.join '/views', viewPath
+    @middlewares.GET[fullPath] ?= []
+    @middlewares.GET[fullPath]  = @middlewares.GET[fullPath].concat middlewares
+    @
 
   action: (actionPath, middlewares...) ->
-    @router.post.apply(
-      @router
-      [path.join("/actions", actionPath), @viewRootHandler].concat middlewares
-    )
+    fullPath                    = path.join '/actions', actionPath
+    @middlewares.POST[fullPath] ?= []
+    @middlewares.POST[fullPath] = @middlewares.POST[fullPath].concat middlewares
+    @
 
   request: (opts) ->
     @requestClient _.extend {}, opts, {
@@ -113,6 +113,17 @@ class Nodeswork
 
   requestDefaults: (opts) ->
     @requestClient = @requestClient.defaults opts
+
+  bind: (path, method, middlewares) ->
+    names = _.map middlewares, (x) -> x.name || 'unkown'
+    logger.info 'Bind router', {
+      path:         path
+      method:       method
+      middlewares:  names
+    }
+    @router[method.toLowerCase()].apply(
+      @router, [path].concat middlewares
+    )
 
   ready: () ->
     return if @isReady
@@ -133,14 +144,38 @@ class Nodeswork
       path: 'nodeswork.config.appletToken'
     }
 
+    savedMiddlewares  = @middlewares
+    @middlewares = GET: {}, POST: {}
+
     await NodesworkComponents.initialize()
+
+    await NodesworkComponents.initialized()
+
+    for method, targets of savedMiddlewares
+      for p, middlewares of targets
+        @middlewares[method][p] ?= []
+        @middlewares[method][p] = @middlewares[method][p].concat middlewares
+
+    processRootHandler  = NAMED 'processRootHandler', _.bind @_processHandler, @
+    viewRootHandler     = NAMED 'viewRootHandler', _.bind @_viewHandler, @
+    actionRootHandler   = NAMED 'actionRootHandler', viewRootHandler
+
+    for method, targets of @middlewares
+      for p, middlewares of targets
+        switch
+          when p.startsWith PROCESSING_URL_PATH
+            @bind p, method, [processRootHandler].concat middlewares
+          when p.startsWith VIEW_URL_PATH
+            @bind p, method, [viewRootHandler].concat middlewares
+          when p.startsWith ACTION_URL_PATH
+            @bind p, method, [actionRootHandler].concat middlewares
+          else
+            @bind p, method, middlewares
 
     @app
       .use bodyParser()
       .use @router.routes()
       .use @router.allowedMethods()
-
-    await NodesworkComponents.initialized()
 
     _.extend NodesworkError.meta, {
       server: "http://localhost:#{@config 'port'}"
