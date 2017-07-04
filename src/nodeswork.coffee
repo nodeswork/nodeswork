@@ -1,20 +1,22 @@
-_                        = require 'underscore'
-Koa                      = require 'koa'
-KoaRouter                = require 'koa-router'
-bodyParser               = require 'koa-bodyparser'
-path                     = require 'path'
-request                  = require 'request-promise'
-url                      = require 'url'
-{ logger }               = require 'nodeswork-logger'
+_                            = require 'underscore'
+Koa                          = require 'koa'
+KoaRouter                    = require 'koa-router'
+bodyParser                   = require 'koa-bodyparser'
+path                         = require 'path'
+request                      = require 'request-promise'
+url                          = require 'url'
+{ logger }                   = require 'nodeswork-logger'
+{ handleRequestMiddleware }  = require 'nodeswork-mongoose'
+
 
 { NodesworkError
-  validator }            = require 'nodeswork-utils'
+  validator }                = require 'nodeswork-utils'
 
-{ PROCESSING_URL_PATH }  = require './constants'
+{ PROCESSING_URL_PATH }      = require './constants'
 
-{ Logger }               = require './nodeswork-component/logger'
+{ Logger }                   = require './nodeswork-component/logger'
 
-{ NodesworkComponents }  = require './nodeswork-component'
+{ NodesworkComponents }      = require './nodeswork-component'
 
 
 # Base Nodeswork class.
@@ -35,13 +37,17 @@ class Nodeswork
     @opts            = {}
     @config @_opts
     @app             = new Koa
-    @router          = new KoaRouter().use @_errorHandler
+    @router          = new KoaRouter()
     @processes       = []
     @accountClazz    = {}
     @componentClazz  = []
 
-    @rootHandler = _.bind @_rootHandler, @
-    @viewRootHandler = _.bind @_viewRootHandler, @
+    @processHandler  = _.bind @_processHandler, @
+    @viewRootHandler = _.bind @_viewHandler, @
+
+    @router
+      .use handleRequestMiddleware
+      .use _.bind @_rootHandler, @
 
     @withComponent Logger
 
@@ -84,7 +90,7 @@ class Nodeswork
   process: (middlewares...) ->
     Array::push.apply @processes, middlewares
     @router.post.apply(
-      @router, [PROCESSING_URL_PATH, @rootHandler].concat middlewares
+      @router, [PROCESSING_URL_PATH, @processHandler].concat middlewares
     )
     @
 
@@ -149,65 +155,37 @@ class Nodeswork
           if err? then return reject err
           resolve @
 
-  _operate: (account, opts={}) ->
-    @request {
-      method:  'POST'
-      url:     "/api/v1/applet/user/#{account.user}/accounts/#{account._id}/operate"
-      body:    opts
-    }
-
   _rootHandler: (ctx, next) ->
-    response     = {
-      name:      @config 'name'
-      appletId:  appletId = @config 'appletId'
-      params:    ctx.request.body
+    ctx.nodeswork = @
+    ctx.response.headers['nodeswork-processor'] = @config 'name'
+    try
+      startTime       = Date.now()
+      ctx.components  = new NodesworkComponents ctx
+      await next()
+    finally
+      ctx.response.headers['nodeswork-request-duration'] = (
+        Date.now() - startTime
+      )
+
+  _processHandler: (ctx, next) ->
+    ctx.userApplet = ctx.request.body.userApplet
+    ctx.execution  = ctx.request.body.execution
+    ctx.logKey     = ctx.execution?._id
+
+    validator.isRequired ctx.userApplet, {
+      message:        'userApplet is required.'
+      meta:
+        responseCode: 400
     }
 
-    validator.isRequired(
-      userId = ctx.request.headers.user
-      meta:
-        path:          'headers.user'
-        responseCode:  400
-    )
-    response.userId            = userId
-
-    try
-      {user, userApplet, applet} = await @request {
-        method:            'GET'
-        url:               "/api/v1/applet-api/#{appletId}/users/#{userId}"
-        headers:
-          'applet-token':  @config 'appletToken'
-      }
-      _.extend ctx, user: user, userApplet: userApplet, applet: applet
-    catch e
-      NodesworkError.fromError e, 'Request user and applet information failed'
-
-    execution       = ctx.request.headers.execution
-    request         = ctx.request.headers.request
-    ctx.logKey      = execution ? request
-    ctx.accounts    = @_parseAccount ctx, userApplet?.accounts ? []
-    ctx.nodeswork   = @
-    ctx.components  = new NodesworkComponents ctx
+    ctx.accounts    = @_parseAccount ctx, ctx.userApplet.accounts
 
     await next()
 
-    ctx.body = _.extend response, {
-      result:    ctx.body
-    }
+  _viewHandler: (ctx, next) ->
+    await next()
 
-  _viewRootHandler: (ctx, next) ->
-    try
-      ctx.components  = new NodesworkComponents ctx
-      await next()
-    catch e
-      ne = NodesworkError.fromError e
-      ctx.body = {
-        status:    'error'
-        error:     ne.toJSON()
-      }
-      ctx.response.status = ne.meta.responseCode ? 500
-
-  _parseAccount: (ctx, accounts) ->
+  _parseAccount: (ctx, accounts=[]) ->
     _.map accounts, (account) =>
       validator.isRequired @accountClazz[account.accountType], {
         message:        'Missing account class'
@@ -219,25 +197,7 @@ class Nodeswork
       _.extend act, account, ctx: ctx
       act
 
-  _errorHandler: (ctx, next) ->
-    startTime    = Date.now()
-    try
-      logger.info 'Receive request', {
-        path:    ctx.request.path
-        method:  ctx.request.method
-      }
-      await next()
-    catch error
-      ne        = NodesworkError.fromError error
-      ctx.body  = {
-        status:  'error'
-        error:   _.omit ne.toJSON(), 'stack'
-      }
-      logger.error 'Error:', ne.toJSON()
-      ctx.response.status = ne.meta.responseCode ? 500
-      ctx.response.headers['x-duration'] = Date.now() - startTime
-
 
 module.exports = nodeswork = _.extend new Nodeswork, {
-  Nodeswork: Nodeswork
+  Nodeswork
 }

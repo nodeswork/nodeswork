@@ -5,6 +5,7 @@ _                         = require 'underscore'
 { Mongoose }              = require './mongoose'
 { Logger }                = require './logger'
 { Request }               = require './request'
+{ Resources }             = require './resources'
 
 
 module.exports = {
@@ -14,4 +15,5 @@ module.exports = {
   NodesworkComponents
   Logger
   Request
+  Resources
 }

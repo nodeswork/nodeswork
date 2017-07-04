@@ -16,29 +16,29 @@ class NodesworkAccount extends Module
   # @throw {NodesworkError} error
   #
   # @return {Promise<Result>}
-  operate: (opts) ->
-    logger = @ctx?.components?.logger
-    validator.isRequired logger, meta: {
-      path: 'ctx.components.logger'
+  operate: (opts={}) ->
+    { action } = opts
+    request    = @component 'request'
+    execution  = @ctx.execution
+
+    validator.isRequired execution?._id, meta: {
+      path: 'ctx.execution'
     }
-    data = {
-      account:
-        _id:              @_id
-        name:             @name
-        constructor:      @constructor.name
-        accountCategory:
-          _id:            @accountCategory._id
-          name:           @accountCategory.name
-      operate:            opts
+    validator.isRequired action, meta: {
+      path: 'options.action'
     }
-    try
-      await @nodeswork._operate @, opts
-      data.status = 'success'
-      logger.info 'Operate on account successfully.', data
-    catch e
-      data.status = 'error'
-      logger.error 'Operate on account failed.', data
-      throw e
+
+    await request.post {
+      url:  "/api/v1/executions/#{execution._id}/accounts/#{@_id}/#{action}"
+      body: opts
+    }
+
+  component: (name, required=true) ->
+    cmpt = @ctx.components[name]
+    validator.isRequired cmpt, meta: {
+      path: "ctx.components.#{name}"
+    } if required
+    cmpt
 
 
 module.exports = {

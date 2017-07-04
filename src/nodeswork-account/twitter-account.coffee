@@ -35,6 +35,7 @@ class TwitterAccount extends NodesworkAccount
   #   included when set to false.
   getHomeTimelineStatues: (options) ->
     @operate {
+      action:   'getHomeTimelineStatues'
       method:   'GET'
       path:     'statuses/home_timeline'
       options:  options
@@ -48,6 +49,7 @@ class TwitterAccount extends NodesworkAccount
   #   the update is in reply to.
   tweet: (options) ->
     @operate {
+      action:   'tweet'
       method:   'POST'
       path:     'statuses/update'
       options:  options

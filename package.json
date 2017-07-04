@@ -17,10 +17,12 @@
   },
   "dependencies": {
     "case": "^1.5.2",
+    "deepcopy": "^0.6.3",
     "koa": "^2.2.0",
     "koa-bodyparser": "^4.2.0",
     "koa-router": "^7.0.0",
     "mongoose": "^4.9.4",
+    "nodeswork-mongoose": "^0.0.2",
     "nodeswork-utils": "^0.0.2",
     "request": "^2.81.0",
     "request-promise": "^4.2.1",

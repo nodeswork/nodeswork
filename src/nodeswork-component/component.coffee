@@ -23,6 +23,7 @@ class NodesworkComponent
       path: "ctx.components.#{name}"
       hints: "Ensure component #{name} is imported."
     }
+    res
 
   # Initialize the component.  It will be called when starting the nodeswork
   #   instance.
