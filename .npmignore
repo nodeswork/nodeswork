@@ -1,3 +1,5 @@
 /src
-/test/*.coffee
+/test
 /Makefile
+tsconfig.json
+gulpfile.js

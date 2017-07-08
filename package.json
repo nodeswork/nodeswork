@@ -7,10 +7,13 @@
     "type": "git",
     "url": "git@github.com:nodeswork/nodeswork.git"
   },
-  "main": "lib/index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "make build && node samples/simple_server.js",
-    "docs": "codo"
+    "build": "coffee -o dist/ -c src/ && ./node_modules/.bin/gulp",
+    "docs": "codo",
+    "prepublish": "npm run build",
+    "start": "npm run build && node dist/index.js",
+    "test": "npm run build && NODE_ENV=test node_modules/.bin/mocha --timeout=10000 --trace-warnings"
   },
   "engines": {
     "node": ">= 4.0"
@@ -31,6 +34,16 @@
   },
   "peerDependencies": {
     "nodeswork-logger": "^0.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^8.0.8",
+    "chai": "^4.0.2",
+    "coffeescript": "^2.0.0-beta3",
+    "gulp": "^3.9.1",
+    "gulp-typescript": "^3.1.7",
+    "mocha": "^3.4.2",
+    "should": "^11.2.1",
+    "typescript": "^2.4.1"
   },
   "keywords": [
     "nodeswork"

@@ -43,3 +43,6 @@ jspm_packages
 
 # docs
 doc/
+
+# dist
+dist/
