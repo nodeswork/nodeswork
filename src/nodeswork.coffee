@@ -1,25 +1,27 @@
-_                            = require 'underscore'
-Koa                          = require 'koa'
-KoaRouter                    = require 'koa-router'
-bodyParser                   = require 'koa-bodyparser'
-path                         = require 'path'
-request                      = require 'request-promise'
-url                          = require 'url'
-{ logger }                   = require 'nodeswork-logger'
-{ handleRequestMiddleware }  = require 'nodeswork-mongoose'
+_                              = require 'underscore'
+Koa                            = require 'koa'
+KoaRouter                      = require 'koa-router'
+bodyParser                     = require 'koa-bodyparser'
+path                           = require 'path'
+request                        = require 'request-promise'
+url                            = require 'url'
+{ logger }                     = require 'nodeswork-logger'
+{ handleRequestMiddleware }    = require 'nodeswork-mongoose'
 
 
 { NodesworkError
   NAMED
-  validator }                = require 'nodeswork-utils'
+  validator }                  = require 'nodeswork-utils'
 
 { PROCESSING_URL_PATH
   VIEW_URL_PATH
-  ACTION_URL_PATH }          = require './constants'
+  ACTION_URL_PATH }            = require './constants'
 
-{ Logger }                   = require './nodeswork-component/logger'
+{ Logger }                     = require './nodeswork-component/logger'
 
-{ NodesworkComponents }      = require './nodeswork-component'
+{ NodesworkComponents }        = require './nodeswork-component'
+
+{ NodesworkComponentManager }  = require './components'
 
 
 # Base Nodeswork class.

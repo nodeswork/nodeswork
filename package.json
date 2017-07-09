@@ -8,6 +8,7 @@
     "url": "git@github.com:nodeswork/nodeswork.git"
   },
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "coffee -o dist/ -c src/ && ./node_modules/.bin/gulp",
     "docs": "codo",
@@ -19,6 +20,8 @@
     "node": ">= 4.0"
   },
   "dependencies": {
+    "@nodeswork/utils": "0.0.2",
+    "@types/koa": "^2.0.39",
     "case": "^1.5.2",
     "deepcopy": "^0.6.3",
     "koa": "^2.2.0",
@@ -33,9 +36,11 @@
     "winston-mongodb": "^2.0.10"
   },
   "peerDependencies": {
+    "@nodeswork/logger": "^0.0.5",
     "nodeswork-logger": "^0.0.2"
   },
   "devDependencies": {
+    "@nodeswork/logger": "^0.0.5",
     "@types/node": "^8.0.8",
     "chai": "^4.0.2",
     "coffeescript": "^2.0.0-beta3",
