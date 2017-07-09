@@ -6,13 +6,17 @@ import { Logger } from './logger'
 import { Nodeswork } from '../nw'
 
 
-export class Request extends NodesworkComponent {
+export interface RequestKoaContext extends Koa.Context {
+}
+
+
+export class Request extends NodesworkComponent<RequestKoaContext> {
 
   logger: Logger
 
   constructor(ctx: Koa.Context) {
     super(ctx);
-    this.logger = this.depends('logger')
+    this.logger = <Logger>this.depends('logger');
   }
 
   async get(options: any): Promise<any> {

@@ -7,15 +7,15 @@ import { Nodeswork } from '../nw'
 const Case: any = require('case');
 
 
-export type NodesworkComponentMap = {
-  [name: string]: NodesworkComponent
+export type NodesworkComponentMap<CT extends Koa.Context> = {
+  [name: string]: NodesworkComponent<CT>
 };
 
 
 declare module "koa" {
 
   export interface Context {
-    components: NodesworkComponentMap
+    components: NodesworkComponentMap<Koa.Context>
   }
 }
 
@@ -25,19 +25,19 @@ export interface NodesworkComponentOption {
 
 
 export interface NodesworkComponentClass {
-  new(ctx: Koa.Context): NodesworkComponent;
+  new(ctx: Koa.Context): NodesworkComponent<Koa.Context>;
 
   initialize(options: NodesworkComponentOption): Promise<void>;
   initialized(options: NodesworkComponentOption): Promise<void>;
 }
 
 
-export abstract class NodesworkComponent {
+export abstract class NodesworkComponent<CT extends Koa.Context> {
 
-  protected ctx: Koa.Context
+  protected ctx: CT
   protected nodeswork: Nodeswork
 
-  constructor(ctx: Koa.Context) {
+  constructor(ctx: CT) {
     this.ctx = ctx;
   }
 
@@ -49,13 +49,13 @@ export abstract class NodesworkComponent {
    * @throws {NodesworkError} when the dependency is missing.
    * @return {NodesworkComponent}
    */
-  depends<T extends NodesworkComponent>(name: string): T {
-    let res: NodesworkComponent = this.ctx.components[name];
+  depends<T extends Koa.Context>(name: string): NodesworkComponent<T> {
+    let res: NodesworkComponent<Koa.Context> = this.ctx.components[name];
     validator.isRequired(res, {meta: {
       path: `ctx.components.${name}`,
       hints: `Ensure component ${name} is imported`,
     }});
-    return <T>res;
+    return <NodesworkComponent<T>>res;
   }
 
   /**
@@ -131,9 +131,9 @@ export class NodesworkComponentManager {
     }
   }
 
-  getComponentMap(ctx: Koa.Context): NodesworkComponentMap {
+  getComponentMap(ctx: Koa.Context): NodesworkComponentMap<Koa.Context> {
     let ret = Object.create(Object.prototype);
-    let cache: NodesworkComponentMap = {};
+    let cache: NodesworkComponentMap<Koa.Context> = {};
     let properties: {[name: string]: object} = {};
 
     this.classes.forEach(([clazz, options]) => {

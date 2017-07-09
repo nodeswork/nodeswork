@@ -1,19 +1,17 @@
 import * as _ from 'underscore'
+import * as Koa from "koa"
 import { NodesworkComponent, NodesworkComponentOption } from './component'
 
 
 let logger: any = require('nodeswork-logger').logger;
 
 
-declare module "koa" {
-
-  export interface Context {
-    logKey: string
-  }
+export interface LoggerKoaContext extends Koa.Context {
+  logKey: string
 }
 
 
-export class Logger extends NodesworkComponent {
+export class Logger extends NodesworkComponent<LoggerKoaContext> {
 
   private getMeta(meta: any): any {
     return _.extend({ key: this.ctx.logKey }, meta);
