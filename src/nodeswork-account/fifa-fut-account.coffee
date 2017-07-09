@@ -1,54 +1,54 @@
-{NodesworkAccount} = require './account'
+{ NodesworkAccount } = require '../accounts'
 
 class FifaFutAccount extends NodesworkAccount
 
   getCredits: () ->
-    @operate method: 'getCredits'
+    @action method: 'getCredits'
 
   getPilesize: () ->
-    @operate method: 'getPilesize'
+    @action method: 'getPilesize'
 
   getTradepile: () ->
-    @operate method: 'getTradepile'
+    @action method: 'getTradepile'
 
   relist: () ->
-    @operate method: 'relist'
+    @action method: 'relist'
 
   getWatchlist: () ->
-    @operate method: 'getWatchlist'
+    @action method: 'getWatchlist'
 
   search: (opts={}) ->
-    @operate _.extend {}, opts, method: 'search'
+    @action _.extend {}, opts, method: 'search'
 
   placeBid: ({tradeId, coins}) ->
-    @operate method: 'placeBid', tradeId: tradeId, coins: coins
+    @action method: 'placeBid', tradeId: tradeId, coins: coins
 
   listItem: ({itemDataId, startingBid, buyNowPrice, duration}) ->
-    @operate {
+    @action {
       method: 'placeBid', itemDataId: itemDataId, startingBid: startingBid
       buyNowPrice: buyNowPrice, duration: duration
     }
 
   getStatus: ({tradeIds}) ->
-    @operate method: 'getStatus', tradeIds: tradeIds
+    @action method: 'getStatus', tradeIds: tradeIds
 
   addToWatchlist: ({tradeId}) ->
-    @operate method: 'addToWatchlist', tradeId: tradeId
+    @action method: 'addToWatchlist', tradeId: tradeId
 
   removeFromTradepile: ({tradeId}) ->
-    @operate method: 'removeFromTradepile', tradeId: tradeId
+    @action method: 'removeFromTradepile', tradeId: tradeId
 
   removeFromWatchlist: ({tradeId}) ->
-    @operate method: 'removeFromWatchlist', tradeId: tradeId
+    @action method: 'removeFromWatchlist', tradeId: tradeId
 
   sendToTradepile: ({itemDataId}) ->
-    @operate method: 'sendToTradepile', itemDataId: itemDataId
+    @action method: 'sendToTradepile', itemDataId: itemDataId
 
   sendToClub: ({itemDataId}) ->
-    @operate method: 'sendToClub', itemDataId: itemDataId
+    @action method: 'sendToClub', itemDataId: itemDataId
 
   quickSell: ({itemDataId}) ->
-    @operate method: 'quickSell', itemDataId: itemDataId
+    @action method: 'quickSell', itemDataId: itemDataId
 
 
 module.exports = {

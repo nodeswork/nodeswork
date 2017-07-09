@@ -9,7 +9,8 @@ Function::setter ?= (prop, set) ->
   Object.defineProperty @prototype, prop, { set, configurable: yes }
 
 
-accounts             = require './nodeswork-account'
+accounts             = require './accounts'
+oldAccounts          = require './nodeswork-account'
 components           = require './components'
 oldComponents        = require './nodeswork-component'
 nodeswork            = require './nodeswork'
@@ -18,6 +19,7 @@ nodeswork            = require './nodeswork'
 module.exports = _.extend(
   nodeswork
   accounts
+  oldAccounts
   components
   oldComponents
 )

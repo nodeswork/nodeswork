@@ -143,7 +143,7 @@ export class NodesworkComponentManager {
           if (cache[name] == null) {
             cache[name] = new clazz(ctx);
           }
-          return cache[name];;
+          return cache[name];
         },
       };
     });

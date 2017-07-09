@@ -1,5 +1,4 @@
-
-{NodesworkAccount} = require './account'
+{ NodesworkAccount } = require '../accounts'
 
 
 class TwitterAccount extends NodesworkAccount
@@ -34,7 +33,7 @@ class TwitterAccount extends NodesworkAccount
   # @option options {Boolean} include_entities The entities node will not be
   #   included when set to false.
   getHomeTimelineStatues: (options) ->
-    @operate {
+    @action {
       action:   'getHomeTimelineStatues'
       method:   'GET'
       path:     'statuses/home_timeline'
@@ -48,7 +47,7 @@ class TwitterAccount extends NodesworkAccount
   # @option options {ID} in_reply_to_status_id The ID of an existing status that
   #   the update is in reply to.
   tweet: (options) ->
-    @operate {
+    @action {
       action:   'tweet'
       method:   'POST'
       path:     'statuses/update'
