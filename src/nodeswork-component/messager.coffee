@@ -1,7 +1,7 @@
 _                        = require 'underscore'
 { validator }            = require 'nodeswork-utils'
 
-{ NodesworkComponent }   = require './component'
+{ NodesworkComponent }   = require '../components/component'
 { API_PREFIX }           = require '../constants'
 
 # Messager is the component to send message to the current user.

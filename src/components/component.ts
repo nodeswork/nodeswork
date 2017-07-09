@@ -116,9 +116,9 @@ export class NodesworkComponentManager {
   }
 
   /**
-   * Intialize registered components.
+   * Initialize registered components.
    */
-  async intialize(): Promise<void> {
+  async initialize(): Promise<void> {
     for (let [clazz, options] of this.classes) {
       await clazz.initialize(options);
     }
@@ -127,7 +127,7 @@ export class NodesworkComponentManager {
   /**
    * Call second round of initialized for registered components.
    */
-  async intialized(): Promise<void> {
+  async initialized(): Promise<void> {
     for (let [clazz, options] of this.classes) {
       await clazz.initialized(options);
     }
@@ -147,7 +147,6 @@ export class NodesworkComponentManager {
           }
           return cache[name];;
         },
-        writable: false
       };
     });
 

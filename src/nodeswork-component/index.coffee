@@ -1,6 +1,4 @@
 _                         = require 'underscore'
-{ NodesworkComponent
-  NodesworkComponents }   = require './component'
 { Messager }              = require './messager'
 { Mongoose }              = require './mongoose'
 { Logger }                = require './logger'
@@ -11,8 +9,6 @@ _                         = require 'underscore'
 module.exports = {
   Messager
   Mongoose
-  NodesworkComponent
-  NodesworkComponents
   Logger
   Request
   Resources

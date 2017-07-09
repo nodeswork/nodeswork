@@ -5,7 +5,7 @@ _                       = require 'underscore'
   NAMED }               = require 'nodeswork-utils'
 winston                 = require 'winston'
 
-{ NodesworkComponent }  = require './component'
+{ NodesworkComponent }  = require '../components/component'
 
 # Provide mongoose local database access.
 class Mongoose extends NodesworkComponent

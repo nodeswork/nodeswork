@@ -10,7 +10,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "coffee -o dist/ -c src/ && ./node_modules/.bin/gulp",
+    "build": "rm -rf dist/ && coffee -o dist/ -c src/ && ./node_modules/.bin/gulp",
     "docs": "codo",
     "prepublish": "npm run build",
     "start": "npm run build && node dist/index.js",

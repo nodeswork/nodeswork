@@ -10,7 +10,8 @@ Function::setter ?= (prop, set) ->
 
 
 accounts             = require './nodeswork-account'
-components           = require './nodeswork-component'
+components           = require './components'
+oldComponents        = require './nodeswork-component'
 nodeswork            = require './nodeswork'
 
 
@@ -18,4 +19,5 @@ module.exports = _.extend(
   nodeswork
   accounts
   components
+  oldComponents
 )

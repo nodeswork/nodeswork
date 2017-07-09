@@ -19,8 +19,6 @@ url                            = require 'url'
 
 { Logger }                     = require './nodeswork-component/logger'
 
-{ NodesworkComponents }        = require './nodeswork-component'
-
 { NodesworkComponentManager }  = require './components'
 
 
@@ -39,13 +37,14 @@ url                            = require 'url'
 class Nodeswork
 
   constructor: (@_opts={}) ->
-    @opts            = {}
+    @opts              = {}
     @config @_opts
-    @app             = new Koa
-    @router          = new KoaRouter()
-    @middlewares     = GET: {}, POST: {}
-    @accountClazz    = {}
-    @componentClazz  = []
+    @app               = new Koa
+    @router            = new KoaRouter()
+    @middlewares       = GET: {}, POST: {}
+    @accountClazz      = {}
+    @componentClazz    = []
+    @componentManager  = new NodesworkComponentManager @
 
     @router
       .use handleRequestMiddleware
@@ -86,7 +85,7 @@ class Nodeswork
     @
 
   withComponent: (componentCls, options={}, overwrite=false) ->
-    NodesworkComponents.register @, componentCls, options, overwrite
+    @componentManager.register componentCls, options, overwrite
     @
 
   process: (middlewares...) ->
@@ -149,9 +148,9 @@ class Nodeswork
     savedMiddlewares  = @middlewares
     @middlewares = GET: {}, POST: {}
 
-    await NodesworkComponents.initialize()
+    await @componentManager.initialize()
 
-    await NodesworkComponents.initialized()
+    await @componentManager.initialized()
 
     for method, targets of savedMiddlewares
       for p, middlewares of targets
@@ -202,7 +201,7 @@ class Nodeswork
     ctx.response.headers['nodeswork-processor'] = @config 'name'
     try
       startTime       = Date.now()
-      ctx.components  = new NodesworkComponents ctx
+      ctx.components  = @componentManager.getComponentMap ctx
       await next()
     finally
       ctx.response.headers['nodeswork-request-duration'] = (

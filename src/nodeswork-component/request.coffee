@@ -1,6 +1,6 @@
 _                       = require 'underscore'
 
-{ NodesworkComponent }  = require './component'
+{ NodesworkComponent }  = require '../components/component'
 
 
 class Request extends NodesworkComponent

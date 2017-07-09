@@ -3,7 +3,7 @@ Case                    = require 'case'
 { URL }                 = require 'url'
 deepcopy                = require 'deepcopy'
 
-{ NodesworkComponent }  = require './component'
+{ NodesworkComponent }  = require '../components/component'
 
 
 class Resource

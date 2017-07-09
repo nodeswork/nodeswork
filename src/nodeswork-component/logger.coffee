@@ -1,7 +1,7 @@
 _                      = require 'underscore'
 { logger }             = require 'nodeswork-logger'
 
-{ NodesworkComponent } = require './component'
+{ NodesworkComponent } = require '../components/component'
 
 
 class Logger extends NodesworkComponent
