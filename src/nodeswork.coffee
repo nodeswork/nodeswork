@@ -17,9 +17,8 @@ url                            = require 'url'
   VIEW_URL_PATH
   ACTION_URL_PATH }            = require './constants'
 
-{ Logger }                     = require './nodeswork-component/logger'
-
-{ NodesworkComponentManager }  = require './components'
+{ NodesworkComponentManager
+  Logger }                     = require './components'
 
 
 # Base Nodeswork class.

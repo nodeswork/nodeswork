@@ -1,7 +1,6 @@
 _                         = require 'underscore'
 { Messager }              = require './messager'
 { Mongoose }              = require './mongoose'
-{ Logger }                = require './logger'
 { Request }               = require './request'
 { Resources }             = require './resources'
 
@@ -9,7 +8,6 @@ _                         = require 'underscore'
 module.exports = {
   Messager
   Mongoose
-  Logger
   Request
   Resources
 }
