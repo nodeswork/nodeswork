@@ -1,8 +1,12 @@
 import * as Koa from "koa"
 
-import { validator } from '@nodeswork/utils'
+import { validator, NodesworkError } from "@nodeswork/utils"
 
-import { NodesworkComponent, Request } from '../components'
+import { Nodeswork } from '../nw'
+import {
+  NodesworkComponent,
+  NodesworkComponentOption,
+  Request } from '../components'
 
 
 export interface AccountActionOption {
@@ -16,15 +20,29 @@ export interface AccountKoaContext extends Koa.Context {
 }
 
 
-export class NodesworkAccount<AT extends AccountKoaContext> {
+export interface NodesworkAccountClass {
+  new(): NodesworkAccount<AccountKoaContext>;
+
+  initialize(options: NodesworkAccountOption): Promise<void>;
+  initialized(options: NodesworkAccountOption): Promise<void>;
+}
+
+
+export interface NodesworkAccountOption extends NodesworkComponentOption {
+}
+
+
+export class NodesworkAccount<AT extends AccountKoaContext>
+  extends NodesworkComponent<AT> {
 
   _id: string
   ctx: AT  // Injected from __proto__.
+  nodeswork:  Nodeswork
 
   /**
    * Initialize current account.
    */
-  async initialize(): Promise<void> {
+  async init(): Promise<void> {
   }
 
   /**
@@ -48,5 +66,17 @@ export class NodesworkAccount<AT extends AccountKoaContext> {
       },
     });
     return <T>ret;
+  }
+
+  /**
+   * Intialize current account when nodeswork starts.
+   */
+  static async initialize(options: NodesworkAccountOption): Promise<void> {
+  }
+
+  /**
+   * A second round of intialization for dealing with account dependencies.
+   */
+  static async initialized(options: NodesworkAccountOption): Promise<void> {
   }
 }

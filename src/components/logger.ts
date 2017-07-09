@@ -1,9 +1,8 @@
 import * as _ from 'underscore'
 import * as Koa from "koa"
-import { NodesworkComponent, NodesworkComponentOption } from './component'
-
-
 import * as logger from '@nodeswork/logger'
+
+import { NodesworkComponent, NodesworkComponentOption } from './component'
 
 
 let LOG = logger.getLogger('logger');

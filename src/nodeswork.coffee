@@ -17,6 +17,7 @@ url                            = require 'url'
   VIEW_URL_PATH
   ACTION_URL_PATH }            = require './constants'
 
+{ NodesworkAccountManager }    = require './accounts'
 { NodesworkComponentManager
   Logger }                     = require './components'
 
@@ -44,6 +45,7 @@ class Nodeswork
     @accountClazz      = {}
     @componentClazz    = []
     @componentManager  = new NodesworkComponentManager @
+    @accountManager    = new NodesworkAccountManager @
 
     @router
       .use handleRequestMiddleware
@@ -78,9 +80,8 @@ class Nodeswork
     }
     @
 
-  withAccount: (accountCls, options={}) ->
-    @accountClazz[accountCls.name]   = [accountCls, options]
-    accountCls::nodeswork            = @
+  withAccount: (accountCls, options={}, overwrite=false) ->
+    @accountManager.register accountCls, options, overwrite
     @
 
   withComponent: (componentCls, options={}, overwrite=false) ->
@@ -148,8 +149,10 @@ class Nodeswork
     @middlewares = GET: {}, POST: {}
 
     await @componentManager.initialize()
+    await @accountManager.initialize()
 
     await @componentManager.initialized()
+    await @accountManager.initialized()
 
     for method, targets of savedMiddlewares
       for p, middlewares of targets
@@ -218,24 +221,12 @@ class Nodeswork
         responseCode: 400
     }
 
-    ctx.accounts    = @_parseAccount ctx, ctx.userApplet.accounts
+    ctx.accounts = @accountManager.parseAccounts ctx, ctx.userApplet.accounts
 
     await next()
 
   _viewHandler: (ctx, next) ->
     await next()
-
-  _parseAccount: (ctx, accounts=[]) ->
-    _.map accounts, (account) =>
-      validator.isRequired @accountClazz[account.accountType], {
-        message:        'Missing account class'
-        meta:
-          accountType:  account.accountType
-      }
-      [cls, options] = @accountClazz[account.accountType]
-      act = new cls options
-      _.extend act, account, ctx: ctx
-      act
 
 
 module.exports = nodeswork = _.extend new Nodeswork, {
