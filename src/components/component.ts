@@ -2,6 +2,8 @@ import * as Koa from "koa"
 
 import { validator, NodesworkError } from "@nodeswork/utils"
 
+import { Nodeswork } from '../nw'
+
 const Case: any = require('case');
 
 
@@ -33,6 +35,7 @@ export interface NodesworkComponentClass {
 export abstract class NodesworkComponent {
 
   protected ctx: Koa.Context
+  protected nodeswork: Nodeswork
 
   constructor(ctx: Koa.Context) {
     this.ctx = ctx;
@@ -46,13 +49,13 @@ export abstract class NodesworkComponent {
    * @throws {NodesworkError} when the dependency is missing.
    * @return {NodesworkComponent}
    */
-  depends(name: string): NodesworkComponent {
+  depends<T extends NodesworkComponent>(name: string): T {
     let res: NodesworkComponent = this.ctx.components[name];
     validator.isRequired(res, {meta: {
       path: `ctx.components.${name}`,
       hints: `Ensure component ${name} is imported`,
     }});
-    return res;
+    return <T>res;
   }
 
   /**
@@ -66,11 +69,6 @@ export abstract class NodesworkComponent {
    */
   static async initialized(options: NodesworkComponentOption): Promise<void> {
   }
-}
-
-
-// TODO: Move outside.
-export interface Nodeswork {
 }
 
 
