@@ -3,7 +3,10 @@ import * as Koa from "koa"
 import { NodesworkComponent, NodesworkComponentOption } from './component'
 
 
-let logger: any = require('nodeswork-logger').logger;
+import * as logger from '@nodeswork/logger'
+
+
+let LOG = logger.getLogger('logger');
 
 
 export interface LoggerKoaContext extends Koa.Context {
@@ -18,31 +21,31 @@ export class Logger extends NodesworkComponent<LoggerKoaContext> {
   }
 
   debug(message: string, meta={}): void {
-    logger.debug(message, this.getMeta(meta));
+    LOG.debug(message, this.getMeta(meta));
   }
 
   verbose(message: string, meta={}): void {
-    logger.verbose(message, this.getMeta(meta));
+    LOG.verbose(message, this.getMeta(meta));
   }
 
   info(message: string, meta={}): void {
-    logger.info(message, this.getMeta(meta));
+    LOG.info(message, this.getMeta(meta));
   }
 
   warn(message: string, meta={}): void {
-    logger.warn(message, this.getMeta(meta));
+    LOG.warn(message, this.getMeta(meta));
   }
 
   error(message: string, meta={}): void {
-    logger.error(message, this.getMeta(meta));
+    LOG.error(message, this.getMeta(meta));
   }
 
   static async initialize(options: NodesworkComponentOption): Promise<void> {
-    logger.info('Component Logger finished first round of initialization.');
+    LOG.info('Component Logger finished first round of initialization.');
   }
 
   static async initialized(options: NodesworkComponentOption): Promise<void> {
-    logger = require('nodeswork-logger').logger;
-    logger.info('Component Logger is fully initialized.');
+    LOG = logger.getLogger('logger');
+    LOG.info('Component Logger is fully initialized.');
   }
 }
