@@ -1,7 +1,8 @@
 import * as _ from 'underscore'
 import * as http from 'http'
-import * as request from 'request-promise'
 import * as path from 'path'
+import * as request from 'request-promise'
+import * as url from 'url'
 import * as Koa from 'koa'
 import * as KoaRouter from 'koa-router'
 import * as KoaBodyParser from 'koa-bodyparser'
@@ -13,10 +14,13 @@ import {
   RequestAPI,
   RequestOption } from './globals'
 import {
+  NodesworkAccount,
+  AccountKoaContext,
   NodesworkAccountClass,
   NodesworkAccountOption,
   NodesworkAccountManager } from './accounts'
 import {
+  Logger,
   NodesworkComponentClass,
   NodesworkComponentManager,
   NodesworkComponentOption } from './components'
@@ -25,12 +29,6 @@ import * as constants from './constants'
 
 
 const LOG = logger.getLogger('logger');
-
-
-export interface Nodeswork {
-
-  request(options: any): any;
-}
 
 
 export interface NodesworkOption {
@@ -64,11 +62,23 @@ export type NodesworkMiddlewares = {
 
 
 export interface NodesworkContext extends KoaRouter.IRouterContext {
-  nodeswork: Nodeswork
+  nodeswork:     Nodeswork
+  userApplet:    any
+  execution:     any
+  executionId:   string
+  logKey:        string
+  accounts:      NodesworkAccount<AccountKoaContext>[]
+}
+
+
+export interface NodesworkClass {
+  new(): Nodeswork;
 }
 
 
 export class Nodeswork {
+
+  Nodeswork:         NodesworkClass;
 
   accountManager:    NodesworkAccountManager
   componentManager:  NodesworkComponentManager
@@ -81,12 +91,19 @@ export class Nodeswork {
   middlewares:       NodesworkMiddlewares = newMiddlwares()
 
   constructor(options: NodesworkOption = null) {
+    this.Nodeswork        = Nodeswork;
     this.accountManager   = new NodesworkAccountManager(this);
     this.componentManager = new NodesworkComponentManager(this);
+    this.router           = new KoaRouter();
+
+    this.router
+      .use(rootHandler(this));
 
     if (options != null) {
       this.config(options);
     }
+
+    this.withComponent(Logger, undefined);
   }
 
   /**
@@ -138,6 +155,8 @@ export class Nodeswork {
       followAllRedirects:  true,
       json:                true
     });
+
+    return this;
   }
 
   /**
@@ -163,6 +182,9 @@ export class Nodeswork {
   }
 
   process(...middlewares: KoaRouter.IMiddleware[]): Nodeswork {
+    if (!this.middlewares.POST[constants.PROCESSING_URL_PATH]) {
+      this.middlewares.POST[constants.PROCESSING_URL_PATH] = [];
+    }
     Array.prototype.push.apply(
       this.middlewares.POST[constants.PROCESSING_URL_PATH],
       middlewares,
@@ -200,6 +222,18 @@ export class Nodeswork {
    * Send request using the client.
    */
   async request(options: RequestOption): Promise<any> {
+    let uri: string;
+
+    if (options.uri != null) {
+      uri = options.uri.toString();
+    } else {
+      let aOptions = options as any;
+      uri = aOptions.url;
+      delete aOptions.url;
+    }
+
+    options.uri = url.resolve(this.config('server') as string, uri);
+    LOG.warn('sendint request to', {uri: uri});
     return await this.requestClient(options);
   }
 
@@ -259,17 +293,17 @@ export class Nodeswork {
         if (path.startsWith(constants.PROCESSING_URL_PATH)) {
           self.bind.apply(
             self,
-            _.flatten([path, method, rootHandler, processHandler, middlewares]),
+            _.flatten([path, method, processHandler(self), middlewares]),
           );
         } else if (path.startsWith(constants.VIEW_URL_PATH)) {
           self.bind.apply(
             self,
-            _.flatten([path, method, rootHandler, middlewares]),
+            _.flatten([path, method, middlewares]),
           );
         } else if (path.startsWith(constants.ACTION_URL_PATH)) {
           self.bind.apply(
             self,
-            _.flatten([path, method, rootHandler, middlewares]),
+            _.flatten([path, method, middlewares]),
           );
         } else {
           self.bind.apply(
@@ -320,8 +354,7 @@ export class Nodeswork {
 
     let params: any[] = [path];
     Array.prototype.push.apply(params, middlewares);
-
-    (<any>this.router)[method.toLowerCase()].apply(this.router, params);
+    (this.router as any)[method.toLowerCase()].apply(this.router, params);
   }
 }
 
@@ -344,8 +377,24 @@ function newMiddlwares(): NodesworkMiddlewares {
 
 
 function processHandler(nodeswork: Nodeswork): KoaRouter.IMiddleware {
-  return async (ctx, next) => {
-    ctx.request.body.userApplet
+  return async (iCtx, next) => {
+    let ctx         = iCtx as NodesworkContext;
+    ctx.userApplet  = ctx.request.body.userApplet;
+    ctx.execution   = ctx.request.body.execution;
+    ctx.executionId = ctx.execution ? ctx.execution._id : null;
+
+    validator.isRequired(ctx.userApplet, {
+      message:         'userApplet is required.',
+      meta:            {
+        responseCode:  400,
+      },
+    });
+
+    ctx.accounts = await nodeswork.accountManager.parseAccounts(
+      ctx, ctx.userApplet.accounts
+    );
+
+    await next();
   };
 }
 

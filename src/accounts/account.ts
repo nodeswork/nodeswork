@@ -2,7 +2,7 @@ import * as Koa from "koa"
 
 import { validator, NodesworkError } from "@nodeswork/utils"
 
-import { Nodeswork } from '../nw'
+import { Nodeswork } from '../nodeswork'
 import {
   NodesworkComponent,
   NodesworkComponentOption,

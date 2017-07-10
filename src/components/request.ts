@@ -3,7 +3,7 @@ import * as Koa from "koa"
 
 import { NodesworkComponent, NodesworkComponentOption } from './component'
 import { Logger } from './logger'
-import { Nodeswork } from '../nw'
+import { Nodeswork } from '../nodeswork'
 
 
 export interface RequestKoaContext extends Koa.Context {

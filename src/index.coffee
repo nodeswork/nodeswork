@@ -13,8 +13,10 @@ accounts             = require './accounts'
 oldAccounts          = require './nodeswork-account'
 components           = require './components'
 oldComponents        = require './nodeswork-component'
-nodeswork            = require './nodeswork'
 
+{ Nodeswork }        = require './nodeswork'
+
+nodeswork = new Nodeswork()
 
 module.exports = _.extend(
   nodeswork
