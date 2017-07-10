@@ -13,6 +13,11 @@ export interface LoggerKoaContext extends Koa.Context {
 }
 
 
+export interface LoggerClass {
+  new(ctx: LoggerKoaContext): Logger;
+}
+
+
 export class Logger extends NodesworkComponent<LoggerKoaContext> {
 
   private getMeta(meta: any): any {

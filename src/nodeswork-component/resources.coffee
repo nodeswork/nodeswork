@@ -6,6 +6,15 @@ deepcopy                = require 'deepcopy'
 { NodesworkComponent }  = require '../components/component'
 
 
+# Pre-define getter and setter to Function's propotype.
+Function::getter ?= (prop, get) ->
+  Object.defineProperty @prototype, prop, { get, configurable: yes }
+
+Function::setter ?= (prop, set) ->
+  Object.defineProperty @prototype, prop, { set, configurable: yes }
+
+
+
 class Resource
 
   constructor: (doc) ->

@@ -10,6 +10,11 @@ export interface RequestKoaContext extends Koa.Context {
 }
 
 
+export interface RequestClass {
+  new(ctx: RequestKoaContext): Request;
+}
+
+
 export class Request extends NodesworkComponent<RequestKoaContext> {
 
   logger: Logger

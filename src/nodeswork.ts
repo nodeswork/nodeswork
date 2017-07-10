@@ -21,6 +21,10 @@ import {
   NodesworkAccountManager } from './accounts'
 import {
   Logger,
+  LoggerClass,
+  Request,
+  RequestClass,
+  NodesworkComponent,
   NodesworkComponentClass,
   NodesworkComponentManager,
   NodesworkComponentOption } from './components'
@@ -78,7 +82,11 @@ export interface NodesworkClass {
 
 export class Nodeswork {
 
-  Nodeswork:         NodesworkClass;
+  Nodeswork           = Nodeswork;
+  Logger              = Logger;
+  Request             = Request;
+  NodesworkAccount    = NodesworkAccount;
+  NodesworkComponent  = NodesworkComponent;
 
   accountManager:    NodesworkAccountManager
   componentManager:  NodesworkComponentManager
@@ -91,7 +99,6 @@ export class Nodeswork {
   middlewares:       NodesworkMiddlewares = newMiddlwares()
 
   constructor(options: NodesworkOption = null) {
-    this.Nodeswork        = Nodeswork;
     this.accountManager   = new NodesworkAccountManager(this);
     this.componentManager = new NodesworkComponentManager(this);
     this.router           = new KoaRouter();
