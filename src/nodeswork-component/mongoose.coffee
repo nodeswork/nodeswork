@@ -1,11 +1,40 @@
 _                       = require 'underscore'
-{ logger }              = require 'nodeswork-logger'
+{ logger }              = require '@nodeswork/logger'
 {
   validator
   NAMED }               = require 'nodeswork-utils'
 winston                 = require 'winston'
 
 { NodesworkComponent }  = require '../components/component'
+
+
+registerMongooseModel = (options) ->
+  {
+    mongoose
+    modelName
+    collections = 'logs'
+  } = options
+  LogSchema = mongoose.Schema {
+    timestamp:  Date
+    level:      String
+    message:    String
+    meta:       mongoose.Schema.Types.Mixed
+    label:      String
+  }, collections: collections
+
+  LogSchema.index {
+    'meta.key': 1
+  }
+
+  LogSchema.statics.searchLog = (query={}, options={}) ->
+    {limit, skip} = options
+    res = @find(query).sort(timestamp: -1)
+    res = res.skip skip if skip?
+    res = res.limit limit if limit?
+    res
+
+  mongoose.model modelName, LogSchema
+
 
 # Provide mongoose local database access.
 class Mongoose extends NodesworkComponent
@@ -44,19 +73,18 @@ class Mongoose extends NodesworkComponent
     return
 
   @setupLogger: (logCollection, logQueryPath) ->
-    nwLogger         = require 'nodeswork-logger'
-    {MongoDB}        = require 'winston-mongodb'
+    nwLogger         = require '@nodeswork/logger'
+    { MongoDB }      = require 'winston-mongodb'
     db               = @::mongoose.connections[0].db
     nwLogger.transports.push nwLogger.transport winston.transports.MongoDB, {
       db:          db
       collection:  logCollection
     }
-    Log              = nwLogger.registerMongooseModel {
+    Log              = registerMongooseModel {
       collections: logCollection
       mongoose:    @::mongoose
       modelName:   'Log'
     }
-    logger           = nwLogger.logger
 
     @::nodeswork.view logQueryPath, NAMED 'queryLog', _.bind @logQueryHandler, @
 

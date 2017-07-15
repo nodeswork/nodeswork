@@ -9,7 +9,8 @@ let LOG = logger.getLogger('logger');
 
 
 export interface LoggerKoaContext extends Koa.Context {
-  logKey: string
+  logKey:      string
+  requestLog:  any
 }
 
 
@@ -46,10 +47,33 @@ export class Logger extends NodesworkComponent<LoggerKoaContext> {
 
   static async initialize(options: NodesworkComponentOption): Promise<void> {
     LOG.info('Component Logger finished first round of initialization.');
+    this.prototype.nodeswork.use(setupRequestLog);
   }
 
   static async initialized(options: NodesworkComponentOption): Promise<void> {
     LOG = logger.getLogger('logger');
     LOG.info('Component Logger is fully initialized.');
+  }
+}
+
+
+async function setupRequestLog(ctx: LoggerKoaContext, next: Function): Promise<void> {
+  ctx.requestLog = {
+    header: {
+      path:    ctx.request.path,
+      method:  ctx.request.method,
+    }
+  };
+
+  let responseCode: number;
+  try {
+    await next();
+    responseCode = ctx.response.status;
+  } catch (e) {
+    responseCode = 500;
+    throw e;
+  } finally {
+    ctx.requestLog.header.responseCode = responseCode;
+    (ctx.components.logger as Logger).info('Request', ctx.requestLog);
   }
 }

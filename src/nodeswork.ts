@@ -97,6 +97,7 @@ export class Nodeswork {
   router:            KoaRouter
   server:            http.Server
   middlewares:       NodesworkMiddlewares = newMiddlwares()
+  commonMiddlewares: KoaRouter.IMiddleware[] = []
 
   constructor(options: NodesworkOption = null) {
     this.accountManager   = new NodesworkAccountManager(this);
@@ -188,6 +189,11 @@ export class Nodeswork {
     return this;
   }
 
+  use(...middlewares: KoaRouter.IMiddleware[]): Nodeswork {
+    Array.prototype.push.apply(this.commonMiddlewares, middlewares);
+    return this;
+  }
+
   process(...middlewares: KoaRouter.IMiddleware[]): Nodeswork {
     if (!this.middlewares.POST[constants.PROCESSING_URL_PATH]) {
       this.middlewares.POST[constants.PROCESSING_URL_PATH] = [];
@@ -240,7 +246,6 @@ export class Nodeswork {
     }
 
     options.uri = url.resolve(this.config('server') as string, uri);
-    LOG.warn('sendint request to', {uri: uri});
     return await this.requestClient(options);
   }
 
@@ -300,22 +305,25 @@ export class Nodeswork {
         if (path.startsWith(constants.PROCESSING_URL_PATH)) {
           self.bind.apply(
             self,
-            _.flatten([path, method, processHandler(self), middlewares]),
+            _.flatten([
+              path, method, processHandler(self), this.commonMiddlewares,
+              middlewares
+            ]),
           );
         } else if (path.startsWith(constants.VIEW_URL_PATH)) {
           self.bind.apply(
             self,
-            _.flatten([path, method, middlewares]),
+            _.flatten([path, method, this.commonMiddlewares, middlewares]),
           );
         } else if (path.startsWith(constants.ACTION_URL_PATH)) {
           self.bind.apply(
             self,
-            _.flatten([path, method, middlewares]),
+            _.flatten([path, method, this.commonMiddlewares, middlewares]),
           );
         } else {
           self.bind.apply(
             self,
-            _.flatten([path, method, middlewares]),
+            _.flatten([path, method, this.commonMiddlewares, middlewares]),
           );
         }
       });
@@ -352,7 +360,7 @@ export class Nodeswork {
   }
 
   bind(path: string, method: string, ...middlewares: KoaRouter.IMiddleware[]) {
-    let names = _.map(middlewares, (m) => m.name || 'unkown');
+    let names = _.map(middlewares, (m) => m.name || 'unknown');
     LOG.info('Bind router', {
       path:         path,
       method:       method,
@@ -384,7 +392,7 @@ function newMiddlwares(): NodesworkMiddlewares {
 
 
 function processHandler(nodeswork: Nodeswork): KoaRouter.IMiddleware {
-  return async (iCtx, next) => {
+  return async function processHandler(iCtx, next) {
     let ctx         = iCtx as NodesworkContext;
     ctx.userApplet  = ctx.request.body.userApplet;
     ctx.execution   = ctx.request.body.execution;
@@ -407,7 +415,7 @@ function processHandler(nodeswork: Nodeswork): KoaRouter.IMiddleware {
 
 
 function rootHandler(nodeswork: Nodeswork): KoaRouter.IMiddleware {
-  return async (ctx, next) => {
+  return async function rootHandler(ctx, next) {
     let nCtx = ctx as any as NodesworkContext;
     let startTime = Date.now();
 
