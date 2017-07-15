@@ -26,21 +26,17 @@
     "@types/koa-router": "^7.0.22",
     "@types/request-promise": "^4.1.36",
     "case": "^1.5.2",
-    "deepcopy": "^0.6.3",
     "koa": "^2.2.0",
     "koa-bodyparser": "^4.2.0",
-    "koa-router": "^7.0.0",
+    "koa-router": "^7.2.0",
     "mongoose": "^4.9.4",
-    "nodeswork-mongoose": "^0.0.2",
-    "nodeswork-utils": "^0.0.2",
     "request": "^2.81.0",
     "request-promise": "^4.2.1",
     "underscore": "^1.8.3",
     "winston-mongodb": "^2.0.10"
   },
   "peerDependencies": {
-    "@nodeswork/logger": "^0.0.5",
-    "nodeswork-logger": "^0.0.2"
+    "@nodeswork/logger": "^0.0.5"
   },
   "devDependencies": {
     "@nodeswork/logger": "^0.0.5",
@@ -51,9 +47,11 @@
     "gulp-typescript": "^3.1.7",
     "mocha": "^3.4.2",
     "should": "^11.2.1",
-    "typescript": "^2.4.1"
+    "typescript": "^2.4.1",
+    "winston": "^2.3.1"
   },
   "keywords": [
     "nodeswork"
-  ]
+  ],
+  "license": "Apache-2.0"
 }
