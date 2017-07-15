@@ -25,6 +25,10 @@ export class Logger extends NodesworkComponent<LoggerKoaContext> {
     return _.extend({ key: this.ctx.logKey }, meta);
   }
 
+  request(data: {}): void {
+    _.extend(this.ctx.requestLog, data);
+  }
+
   debug(message: string, meta={}): void {
     LOG.debug(message, this.getMeta(meta));
   }
