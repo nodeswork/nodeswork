@@ -1,7 +1,7 @@
 _                       = require 'underscore'
 Case                    = require 'case'
 { URL }                 = require 'url'
-deepcopy                = require 'deepcopy'
+# deepcopy                = require 'deepcopy'
 
 { NodesworkComponent }  = require '../components/component'
 

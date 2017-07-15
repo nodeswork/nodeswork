@@ -1,5 +1,5 @@
 _                        = require 'underscore'
-{ validator }            = require 'nodeswork-utils'
+{ validator }            = require '@nodeswork/utils'
 
 { NodesworkComponent }   = require '../components/component'
 { API_PREFIX }           = require '../constants'

@@ -2,7 +2,7 @@ _                       = require 'underscore'
 { logger }              = require '@nodeswork/logger'
 {
   validator
-  NAMED }               = require 'nodeswork-utils'
+  NAMED }               = require '@nodeswork/utils'
 winston                 = require 'winston'
 
 { NodesworkComponent }  = require '../components/component'
