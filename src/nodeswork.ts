@@ -8,7 +8,10 @@ import * as KoaRouter from 'koa-router'
 import * as KoaBodyParser from 'koa-bodyparser'
 
 import * as logger from '@nodeswork/logger'
-import { validator, NodesworkError } from '@nodeswork/utils'
+import {
+  validator,
+  handler,
+  NodesworkError } from '@nodeswork/utils'
 
 import {
   RequestAPI,
@@ -33,6 +36,7 @@ import * as constants from './constants'
 
 
 const LOG = logger.getLogger('logger');
+const REQUEST_LOG = LOG;
 
 
 export interface NodesworkOption {
@@ -67,7 +71,7 @@ export type NodesworkMiddlewares = {
 
 export interface NodesworkContext extends KoaRouter.IRouterContext {
   nodeswork:     Nodeswork
-  userApplet:    any
+  userApplet:    { _id: string, accounts: {}[] }
   execution:     any
   executionId:   string
   logKey:        string
@@ -105,6 +109,10 @@ export class Nodeswork {
     this.router           = new KoaRouter();
 
     this.router
+      .use(handler.logRequestHandler(REQUEST_LOG))
+      .use(handler.internalErrorHandler(REQUEST_LOG, {
+        debug: process.env.NODE_ENV != 'production'
+      }))
       .use(rootHandler(this));
 
     if (options != null) {
@@ -334,7 +342,7 @@ export class Nodeswork {
       .use(KoaBodyParser())
       .use(this.router.routes())
       .use(this.router.allowedMethods())
-      .use(logUncaughtRequests);
+      .use(handler.uncaughtRequestHandler(REQUEST_LOG));
 
     this.server       = http.createServer(this.app.callback());
 
@@ -398,7 +406,7 @@ function processHandler(nodeswork: Nodeswork): KoaRouter.IMiddleware {
     ctx.execution   = ctx.request.body.execution;
     ctx.executionId = ctx.execution ? ctx.execution._id : null;
 
-    validator.isRequired(ctx.userApplet, {
+    validator.isRequired(ctx.userApplet && ctx.userApplet._id, {
       message:         'userApplet is required.',
       meta:            {
         responseCode:  400,

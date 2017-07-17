@@ -1,7 +1,7 @@
 import * as _ from 'underscore'
 import * as Koa from "koa"
 
-import { Nodeswork } from './nodeswork'
+import { Nodeswork, NodesworkContext } from './nodeswork'
 
 import * as accounts from './accounts'
 import * as cmpts from './components'
@@ -16,7 +16,8 @@ let oldComponents: any = require('./nodeswork-component');
 
 module nodeswork {
 
-  export type INodeswork                 = Nodeswork
+  export type INodeswork                 = Nodeswork;
+  export type INodesworkContext          = NodesworkContext;
 
   // Exports accounts
   export type NodesworkAccountClass      = accounts.NodesworkAccountClass;
