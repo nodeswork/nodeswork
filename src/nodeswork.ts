@@ -40,17 +40,20 @@ const REQUEST_LOG = LOG;
 
 
 export interface NodesworkOption {
-  env?:         string
-  server:       string
-  host:         string
-  port:         number
-  appletId:     string
-  appletToken:  string
+  env?:           string
+  name?:          string
+  server?:        string
+  host?:          string
+  port?:          number
+  appletId?:      string
+  appletToken?:   string
+  [name: string]: any
 }
 
 
 let DEFAULT_CONFIG: NodesworkOption = {
   env:          'development',
+  name:         null,
   server:       null,
   host:         'localhost',
   port:         28888,
@@ -164,13 +167,13 @@ export class Nodeswork {
 
     if (!this._options.jar) {
       this._options.jar = request.jar();
-    }
 
-    this.requestClient = request.defaults({
-      jar:                 this._options.jar,
-      followAllRedirects:  true,
-      json:                true
-    });
+      this.requestClient = request.defaults({
+        jar:                 this._options.jar,
+        followAllRedirects:  true,
+        json:                true
+      });
+    }
 
     return this;
   }
@@ -190,7 +193,7 @@ export class Nodeswork {
    * Register a new component.
    */
   withComponent(
-    clazz: NodesworkComponentClass, options: NodesworkComponentOption,
+    clazz: NodesworkComponentClass, options: NodesworkComponentOption = {},
     overwrite = false
   ): Nodeswork {
     this.componentManager.register(clazz, options, overwrite);

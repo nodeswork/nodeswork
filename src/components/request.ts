@@ -50,6 +50,7 @@ export class Request extends NodesworkComponent<RequestKoaContext> {
         options,
         duration: Date.now() - startTime,
       });
+      throw e;
     }
   }
 }
