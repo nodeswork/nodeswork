@@ -8,6 +8,8 @@
     "sourceMap": true,
     "declaration": true,
     "noImplicitAny": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "target": "es2017",
     "typeRoots": [
       "node_modules/@types"

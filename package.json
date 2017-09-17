@@ -14,7 +14,8 @@
     "docs": "codo",
     "prepublish": "npm run build",
     "start": "npm run build && node dist/index.js",
-    "test": "npm run build && NODE_ENV=test node_modules/.bin/mocha --timeout=10000 --trace-warnings"
+    "test": "./node_modules/.bin/gulp && NODE_ENV=test node_modules/.bin/mocha --timeout=10000 --trace-warnings --compilers coffee:coffeescript/register",
+    "test2": "NODE_ENV=test node_modules/.bin/mocha --timeout=10000 --trace-warnings --compilers ts:ts-node/register"
   },
   "engines": {
     "node": ">= 4.0"
@@ -25,11 +26,13 @@
     "@types/koa-bodyparser": "^3.0.23",
     "@types/koa-router": "^7.0.22",
     "@types/request-promise": "^4.1.36",
+    "@types/underscore": "^1.8.3",
     "case": "^1.5.2",
     "koa": "^2.2.0",
     "koa-bodyparser": "^4.2.0",
     "koa-router": "^7.2.0",
     "mongoose": "^4.9.4",
+    "reflect-metadata": "^0.1.10",
     "request": "^2.81.0",
     "request-promise": "^4.2.1",
     "underscore": "^1.8.3",
@@ -40,13 +43,16 @@
   },
   "devDependencies": {
     "@nodeswork/logger": "^0.0.5",
+    "@types/mocha": "^2.2.43",
     "@types/node": "^8.0.8",
+    "@types/should": "^11.2.0",
     "chai": "^4.0.2",
     "coffeescript": "^2.0.0-beta3",
     "gulp": "^3.9.1",
     "gulp-typescript": "^3.1.7",
     "mocha": "^3.4.2",
     "should": "^11.2.1",
+    "ts-node": "^3.3.0",
     "typescript": "^2.4.1",
     "winston": "^2.3.1"
   },
