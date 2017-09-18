@@ -3,6 +3,7 @@ import 'reflect-metadata';
 import * as _ from 'underscore';
 
 import { Injectable, beanProvider, Constructor } from './injection';
+import { Worker } from './worker';
 
 export const moduleMetadataKey = Symbol('nw:module');
 
@@ -55,9 +56,36 @@ export function NwModule(options: NwModuleOptions) {
     );
 
     beanProvider.register(constructor);
+
+    constructor.prototype.$getModuleMetadata  = $getModuleMetadata;
+    constructor.prototype.$work               = $work;
   };
 }
 
 export function getModuleMetadata(nwModule: Constructor): ModuleMetadata {
   return Reflect.getMetadata(moduleMetadataKey, nwModule.prototype);
+}
+
+export interface NwModule {
+  $getModuleMetadata(): ModuleMetadata;
+  $work<T>(workerName: string, inputs: object[]): Promise<T>;
+}
+
+function $getModuleMetadata() {
+  return getModuleMetadata(this.constructor);
+}
+
+async function $work<T>(workerName: string, inputs: object[]): Promise<T> {
+  const injectedInputs = _.map(inputs, (input: any) => {
+    const { type, data } = input;
+    if (type == null) {
+      throw new Error('type is missing in input');
+    }
+    const instance = beanProvider.getBean(type);
+    _.extend(instance, data);
+    return instance;
+  });
+  const worker = beanProvider.getBean(workerName, injectedInputs) as Worker<T>;
+  const result = await worker.work();
+  return result;
 }
