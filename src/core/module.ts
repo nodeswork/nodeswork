@@ -12,7 +12,7 @@ export interface NwModuleOptions {
   workers?:    Constructor[];
   accounts?:   Constructor[];
   handlers?:   Constructor[];
-  services?:   Constructor[];
+  providers?:  Constructor[];
   bootstrap?:  Constructor[];
 }
 
@@ -28,7 +28,7 @@ export function NwModule(options: NwModuleOptions) {
       workers:    [],
       accounts:   [],
       handlers:   [],
-      services:   [],
+      providers:   [],
       bootstrap:  [],
     };
 
@@ -36,7 +36,7 @@ export function NwModule(options: NwModuleOptions) {
       Array.prototype.push.apply(moduleMetadata.workers, opts.workers);
       Array.prototype.push.apply(moduleMetadata.accounts, opts.accounts);
       Array.prototype.push.apply(moduleMetadata.handlers, opts.handlers);
-      Array.prototype.push.apply(moduleMetadata.services, opts.services);
+      Array.prototype.push.apply(moduleMetadata.providers, opts.providers);
       Array.prototype.push.apply(moduleMetadata.bootstrap, opts.bootstrap);
     }
 

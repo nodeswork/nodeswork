@@ -13,9 +13,9 @@ export class ServiceStuctureHandler implements Handler<object> {
 
   handle() {
     return {
-      handlers: this.modules.getRegisterdHandlers(),
-      workers: this.modules.getRegisterdWorkers(),
-      services: this.modules.getRegisterdServices(),
+      handlers: this.modules.getRegisteredHandlers(),
+      workers: this.modules.getRegisteredWorkers(),
+      services: this.modules.getRegisteredProviders(),
     };
   }
 }

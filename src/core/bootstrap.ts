@@ -39,8 +39,8 @@ function registerModule(nwModule: NwModule): Constructor[] {
     beanProvider.register(handler);
   }
 
-  for (let service of moduleMetadata.services) {
-    beanProvider.register(service);
+  for (let provider of moduleMetadata.providers) {
+    beanProvider.register(provider);
   }
 
   beanProvider.register(nwModule);

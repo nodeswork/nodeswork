@@ -1,3 +1,4 @@
+import * as _                              from 'underscore';
 import * as Koa                            from 'koa';
 import * as Router                         from 'koa-router';
 
@@ -20,7 +21,7 @@ export class KoaService {
   constructor(
     private modules: ModuleService,
   ) {
-    for (let workerMeta of this.modules.getRegisterdWorkers()) {
+    for (let workerMeta of this.modules.getRegisteredWorkers()) {
       const path = `/workers/${workerMeta.name}`;
       const method = 'POST';
       this.router.post(path, workerMiddleware(workerMeta));
@@ -29,7 +30,7 @@ export class KoaService {
       });
     }
 
-    for (let handlerMeta of this.modules.getRegisterdHandlers()) {
+    for (let handlerMeta of this.modules.getRegisteredHandlers()) {
       const meta    = handlerMeta.meta as HandlerOptions;
       const path    = meta.path;
       const method  = meta.method || 'GET';
@@ -48,14 +49,34 @@ export class KoaService {
 
 function workerMiddleware(workerMeta: InjectionMetadata): Router.IMiddleware {
   return async (ctx: Router.IRouterContext) => {
-    const instance = beanProvider.getBean(workerMeta.name) as Worker<any>;
+    const inputs = getInputs(ctx);
+    const instance = beanProvider.getBean(workerMeta.name, inputs) as Worker<any>;
     ctx.body = await instance.work();
   };
 }
 
 function handleMiddleware(handlerMeta: InjectionMetadata): Router.IMiddleware {
   return async (ctx: Router.IRouterContext) => {
-    const instance = beanProvider.getBean(handlerMeta.name) as Handler<any>;
+    const inputs = getInputs(ctx);
+    const instance = beanProvider.getBean(handlerMeta.name, inputs) as Handler<any>;
     ctx.body = await instance.handle();
   };
+}
+
+function getInputs(ctx: Router.IRouterContext): object[] {
+  const raw = [
+    { type: 'ContextInput', data: { ctx } },
+  ];
+
+  const injectedInputs = _.map(raw, (input: any) => {
+    const { type, data } = input;
+    if (type == null) {
+      throw new Error('type is missing in input');
+    }
+    const instance = beanProvider.getBean(type);
+    _.extend(instance, data);
+    return instance;
+  });
+
+  return injectedInputs;
 }

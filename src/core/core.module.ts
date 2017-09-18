@@ -8,9 +8,11 @@ import {
   ServiceStatsHandler,
   ServiceStuctureHandler,
 }                         from './handlers';
+import { ContextInput }   from './inputs';
 
 @NwModule({
-  services: [
+  providers: [
+    ContextInput,
     CoreService,
     KoaService,
     ModuleService,

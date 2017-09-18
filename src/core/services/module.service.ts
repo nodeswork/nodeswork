@@ -12,15 +12,15 @@ export class ModuleService {
 
   constructor() { }
 
-  public getRegisterdServices(): InjectionMetadata[] {
-    return this.getRegisteredBeansWithTag('service');
+  public getRegisteredProviders(): InjectionMetadata[] {
+    return this.getRegisteredBeansWithTag('provider');
   }
 
-  public getRegisterdHandlers(): InjectionMetadata[] {
+  public getRegisteredHandlers(): InjectionMetadata[] {
     return this.getRegisteredBeansWithTag('handler');
   }
 
-  public getRegisterdWorkers(): InjectionMetadata[] {
+  public getRegisteredWorkers(): InjectionMetadata[] {
     return this.getRegisteredBeansWithTag('worker');
   }
 
@@ -30,7 +30,7 @@ export class ModuleService {
     const metadatas = _.map(beans, (bean) => getInjectionMetadata(bean));
 
     const filteredMetas = _.filter(metadatas, (metadata) => {
-      return metadata.tags && metadata.tags.indexOf(tag) >= 0;
+      return metadata && metadata.tags && metadata.tags.indexOf(tag) >= 0;
     });
 
     return filteredMetas;
