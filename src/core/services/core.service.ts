@@ -11,7 +11,11 @@ export class CoreService {
   constructor(
     private koa: KoaService,
   ) {
-    this.koa.app.listen(28900);
+
+    this.koa.app
+      .use(this.koa.router.routes())
+      .use(this.koa.router.allowedMethods())
+      .listen(28900);
     LOG.info('server is start', { url: 'http://localhost:28900' });
   }
 }

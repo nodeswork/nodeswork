@@ -43,8 +43,6 @@ export class KoaService {
 
     this.app
       .use(KoaBodyParser())
-      .use(this.router.routes())
-      .use(this.router.allowedMethods())
     ;
   }
 }
