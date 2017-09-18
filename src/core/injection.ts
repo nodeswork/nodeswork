@@ -46,8 +46,10 @@ export class BeanProvider {
       );
       if (input.isArray) {
         instance[input.propertyName] = candidates;
-      } else {
+      } else if (candidates.length > 0) {
         instance[input.propertyName] = candidates[0];
+      } else {
+        instance[input.propertyName] = this.getBean(input.ref, inputs);
       }
     });
     return instance;

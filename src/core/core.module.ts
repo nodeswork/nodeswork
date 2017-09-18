@@ -11,11 +11,15 @@ import {
   ServiceStuctureHandler,
 }                            from './handlers';
 import { ContextInput }      from './inputs';
+import {
+  ContextLogger,
+}                            from './providers';
 
 @NwModule({
   providers: [
     AppletInfoService,
     ContextInput,
+    ContextLogger,
     CoreService,
     KoaService,
     ModuleService,
