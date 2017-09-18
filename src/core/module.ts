@@ -11,6 +11,7 @@ export interface NwModuleOptions {
   depends?:    Constructor[];
   workers?:    Constructor[];
   accounts?:   Constructor[];
+  handlers?:   Constructor[];
   services?:   Constructor[];
   bootstrap?:  Constructor[];
 }
@@ -26,23 +27,17 @@ export function NwModule(options: NwModuleOptions) {
     const moduleMetadata: ModuleMetadata = {
       workers:    [],
       accounts:   [],
+      handlers:   [],
       services:   [],
       bootstrap:  [],
     };
 
     function process(opts: NwModuleOptions) {
-      _.each(opts.workers, (worker) => {
-        moduleMetadata.workers.push(worker);
-      });
-      _.each(opts.accounts, (account) => {
-        moduleMetadata.accounts.push(account);
-      });
-      _.each(opts.services, (service) => {
-        moduleMetadata.services.push(service);
-      });
-      _.each(opts.bootstrap, (component) => {
-        moduleMetadata.bootstrap.push(component);
-      });
+      Array.prototype.push.apply(moduleMetadata.workers, opts.workers);
+      Array.prototype.push.apply(moduleMetadata.accounts, opts.accounts);
+      Array.prototype.push.apply(moduleMetadata.handlers, opts.handlers);
+      Array.prototype.push.apply(moduleMetadata.services, opts.services);
+      Array.prototype.push.apply(moduleMetadata.bootstrap, opts.bootstrap);
     }
 
     _.each(options.depends, (dep) => {

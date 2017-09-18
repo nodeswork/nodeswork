@@ -84,6 +84,7 @@ export interface InputMetadata extends InjectMetadata {
 export interface InjectionMetadata {
   name?:     string;
   tags?:     string[];
+  meta?:     object;
   injects?:  InjectMetadata[];
   inputs?:   InputMetadata[];
 }
@@ -114,7 +115,13 @@ export function Input(options: { type?: string } = {}) {
   };
 }
 
-export function Injectable(options?: { inputs?: boolean, tags?: string[] }) {
+export interface InjectableOptions {
+  inputs?:  boolean;
+  tags?:    string[];
+  meta?:    object;
+}
+
+export function Injectable(options: InjectableOptions = {}) {
   return <T extends {new(...args:any[]):{}}>(constructor: T) => {
 
     const injectionMetadata: InjectionMetadata = Reflect.getMetadata(
@@ -124,7 +131,7 @@ export function Injectable(options?: { inputs?: boolean, tags?: string[] }) {
 
     injectionMetadata.name = constructor.name;
 
-    if (!(options && options.inputs)) {
+    if (!options.inputs) {
       injectionMetadata.inputs = [];
     }
 
@@ -135,8 +142,12 @@ export function Injectable(options?: { inputs?: boolean, tags?: string[] }) {
       };
     });
 
-    if (options && options.tags) {
+    if (options.tags) {
       injectionMetadata.tags = options.tags;
+    }
+
+    if (options.meta) {
+      injectionMetadata.meta = options.meta;
     }
 
     Reflect.defineMetadata(

@@ -5,8 +5,8 @@ import {
   ModuleService,
 }                    from './services';
 import {
-  ServiceStatsWorker
-}                    from './workers';
+  ServiceStatsHandler
+}                    from './handlers';
 
 @NwModule({
   services: [
@@ -15,7 +15,9 @@ import {
     ModuleService,
   ],
   workers: [
-    ServiceStatsWorker,
+  ],
+  handlers: [
+    ServiceStatsHandler,
   ],
   bootstrap: [
     CoreService,
