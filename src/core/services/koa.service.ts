@@ -10,12 +10,15 @@ import { Handler, HandlerOptions } from '../handler';
 import { Worker }                  from '../worker';
 import {
   beanProvider,
+  getInjectionMetadata,
+  Constructor,
   InjectionMetadata,
 }                                  from '../injection';
 import {
   MIDDLEWARE,
   AppMiddlewareProvider,
   MiddlewareProvider,
+  MiddlewareOptions,
   RouterMiddlewareProvider,
   isAppMiddlwareProvider,
 }                                  from '../providers/middleware.provider';
@@ -39,6 +42,13 @@ export class KoaService {
     }
 
     for (let middleware of middlewares) {
+      const metadata = getInjectionMetadata(
+        middleware.constructor as Constructor
+      );
+      const options = metadata.meta as MiddlewareOptions;
+      if (options && options.later) {
+        continue;
+      }
       if (isAppMiddlwareProvider(middleware)) {
         this.app.use(middleware.appMiddleware());
       } else {
@@ -65,10 +75,30 @@ export class KoaService {
       });
     }
 
+    for (let middleware of middlewares) {
+      const metadata = getInjectionMetadata(
+        middleware.constructor as Constructor
+      );
+      const options = metadata.meta as MiddlewareOptions;
+      if (options && options.later && !isAppMiddlwareProvider(middleware)) {
+        this.router.use(middleware.routerMiddleware());
+      }
+    }
+
     this.app
       .use(this.router.routes())
       .use(this.router.allowedMethods())
     ;
+
+    for (let middleware of middlewares) {
+      const metadata = getInjectionMetadata(
+        middleware.constructor as Constructor
+      );
+      const options = metadata.meta as MiddlewareOptions;
+      if (options && options.later && isAppMiddlwareProvider(middleware)) {
+        this.app.use(middleware.appMiddleware());
+      }
+    }
   }
 }
 

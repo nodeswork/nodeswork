@@ -2,6 +2,8 @@ import * as Koa           from 'koa';
 import * as Router        from 'koa-router';
 import * as KoaBodyParser from 'koa-bodyparser';
 
+import { Injectable }     from '../injection';
+
 export interface AppMiddlewareProvider {
   appMiddleware(): Koa.Middleware;
 }
@@ -21,6 +23,16 @@ export function isAppMiddlwareProvider(
 
 export const MIDDLEWARE = 'ROUTER_MIDDLEWARE';
 
+export function Middleware(options: MiddlewareOptions = {}) {
+  const injectable = Injectable({ meta: options });
+  return injectable;
+}
+
+export interface MiddlewareOptions {
+  later?: boolean;
+}
+
+@Middleware()
 export class BodyParserMiddleware implements AppMiddlewareProvider {
 
   appMiddleware() {
