@@ -13,6 +13,8 @@ import {
 import { ContextInput }      from './inputs';
 import {
   ContextLogger,
+  CoreMiddlewares,
+  MIDDLEWARE,
 }                            from './providers';
 
 @NwModule({
@@ -23,6 +25,11 @@ import {
     CoreService,
     KoaService,
     ModuleService,
+    {
+      provide:   MIDDLEWARE,
+      useClass:  CoreMiddlewares,
+      multi:     true,
+    },
   ],
   workers: [
   ],

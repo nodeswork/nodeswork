@@ -1,15 +1,24 @@
-import * as _                              from 'underscore';
-import * as Koa                            from 'koa';
-import * as Router                         from 'koa-router';
-import * as KoaBodyParser                  from 'koa-bodyparser';
+import * as _                      from 'underscore';
+import * as Koa                    from 'koa';
+import * as Router                 from 'koa-router';
 
-import * as logger                         from '@nodeswork/logger';
+import * as logger                 from '@nodeswork/logger';
 
-import { Service }                         from '../service';
-import { ModuleService }                   from './module.service';
-import { Handler, HandlerOptions }         from '../handler';
-import { Worker }                          from '../worker';
-import { beanProvider, InjectionMetadata } from '../injection';
+import { Service }                 from '../service';
+import { ModuleService }           from './module.service';
+import { Handler, HandlerOptions } from '../handler';
+import { Worker }                  from '../worker';
+import {
+  beanProvider,
+  InjectionMetadata,
+}                                  from '../injection';
+import {
+  MIDDLEWARE,
+  AppMiddlewareProvider,
+  MiddlewareProvider,
+  RouterMiddlewareProvider,
+  isAppMiddlwareProvider,
+}                                  from '../providers/middleware.provider';
 
 const LOG = logger.getLogger();
 
@@ -22,6 +31,21 @@ export class KoaService {
   constructor(
     private modules: ModuleService,
   ) {
+    let middlewares: MiddlewareProvider[];
+    try {
+      middlewares = beanProvider.getSingletonBeans(MIDDLEWARE);
+    } catch (e) {
+      middlewares = [];
+    }
+
+    for (let middleware of middlewares) {
+      if (isAppMiddlwareProvider(middleware)) {
+        this.app.use(middleware.appMiddleware());
+      } else {
+        this.router.use(middleware.routerMiddleware());
+      }
+    }
+
     for (let workerMeta of this.modules.getRegisteredWorkers()) {
       const path = `/workers/${workerMeta.name}`;
       const method = 'POST';
@@ -42,7 +66,8 @@ export class KoaService {
     }
 
     this.app
-      .use(KoaBodyParser())
+      .use(this.router.routes())
+      .use(this.router.allowedMethods())
     ;
   }
 }

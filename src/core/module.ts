@@ -1,9 +1,14 @@
 import 'reflect-metadata';
 
-import * as _ from 'underscore';
+import * as _          from 'underscore';
 
-import { Injectable, beanProvider, Constructor } from './injection';
-import { Worker } from './worker';
+import {
+  Injectable,
+  beanProvider,
+  Constructor,
+  ConstructorOverride,
+}                      from './injection';
+import { Worker }      from './worker';
 
 export const moduleMetadataKey = Symbol('nw:module');
 
@@ -12,7 +17,7 @@ export interface NwModuleOptions {
   workers?:    Constructor[];
   accounts?:   Constructor[];
   handlers?:   Constructor[];
-  providers?:  Constructor[];
+  providers?:  (Constructor|ConstructorOverride)[];
   bootstrap?:  Constructor[];
 }
 
