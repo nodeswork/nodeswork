@@ -1,6 +1,7 @@
 import * as _                              from 'underscore';
 import * as Koa                            from 'koa';
 import * as Router                         from 'koa-router';
+import * as KoaBodyParser                  from 'koa-bodyparser';
 
 import * as logger                         from '@nodeswork/logger';
 
@@ -41,6 +42,7 @@ export class KoaService {
     }
 
     this.app
+      .use(KoaBodyParser())
       .use(this.router.routes())
       .use(this.router.allowedMethods())
     ;

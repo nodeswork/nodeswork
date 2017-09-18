@@ -1,17 +1,20 @@
-import { NwModule }       from './module';
+import { NwModule }          from './module';
 import {
+  AppletInfoService,
   CoreService,
   KoaService,
   ModuleService,
-}                         from './services';
+}                            from './services';
 import {
+  RegisterAppletInfoHandler,
   ServiceStatsHandler,
   ServiceStuctureHandler,
-}                         from './handlers';
-import { ContextInput }   from './inputs';
+}                            from './handlers';
+import { ContextInput }      from './inputs';
 
 @NwModule({
   providers: [
+    AppletInfoService,
     ContextInput,
     CoreService,
     KoaService,
@@ -20,6 +23,7 @@ import { ContextInput }   from './inputs';
   workers: [
   ],
   handlers: [
+    RegisterAppletInfoHandler,
     ServiceStatsHandler,
     ServiceStuctureHandler,
   ],
