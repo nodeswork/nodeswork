@@ -1,9 +1,9 @@
-import * as _                from 'underscore';
+import * as _                               from 'underscore';
 
-import * as logger           from '@nodeswork/logger';
+import * as logger                          from '@nodeswork/logger';
 
-import { ContextInput }      from '../inputs';
-import { Input, Injectable } from '../injection';
+import { ContextInput }                     from '../inputs';
+import { Input, Injectable, PostConstruct } from '../injection';
 
 const LOG = logger.getLogger();
 
@@ -13,8 +13,13 @@ export class ContextLogger {
   @Input() context: ContextInput;
   meta: any = {};
 
-  constructor() {
-    console.log('???', this.context);
+  constructor() { }
+
+  @PostConstruct()
+  init() {
+    this.withMeta({
+      _requestId: this.context.requsetId,
+    });
   }
 
   withMeta(meta: any) {

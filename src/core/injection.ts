@@ -52,6 +52,9 @@ export class BeanProvider {
         instance[input.propertyName] = this.getBean(input.ref, inputs);
       }
     });
+    _.each(injectionMetadata.posts, (post) => {
+      instance[post]();
+    });
     return instance;
   }
 
@@ -87,6 +90,7 @@ export interface InjectionMetadata {
   name?:     string;
   tags?:     string[];
   meta?:     object;
+  posts?:    string[];
   injects?:  InjectMetadata[];
   inputs?:   InputMetadata[];
 }
@@ -113,6 +117,19 @@ export function Input(options: { type?: string } = {}) {
       ref,
       isArray,
     });
+    Reflect.defineMetadata(injectionMetadataKey, injectionMetadata, target);
+  };
+}
+
+export function PostConstruct() {
+  return (target: any, propertyName: string, descriptor: PropertyDescriptor) => {
+    let injectionMetadata: InjectionMetadata = (
+      Reflect.getMetadata(injectionMetadataKey, target) || {}
+    );
+    if (injectionMetadata.posts == null) {
+      injectionMetadata.posts = [];
+    }
+    injectionMetadata.posts.push(propertyName);
     Reflect.defineMetadata(injectionMetadataKey, injectionMetadata, target);
   };
 }
