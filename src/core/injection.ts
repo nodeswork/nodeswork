@@ -4,7 +4,7 @@ import * as _ from 'underscore';
 
 export const injectionMetadataKey = Symbol('nw:injection');
 
-export type Beans = {[key: string]: Constructor};
+export type Beans = {[key: string]: Constructor[]};
 
 export type Constructor = {new(...args:any[]): {}};
 
@@ -16,28 +16,28 @@ export class BeanProvider {
   register(val: Constructor) {
     const key = val.name;
     const exists = this.beans[key];
-    if (exists != null && exists !== val) {
+    if (exists != null && exists.length && exists[0] !== val) {
       throw new Error(`Bean {${key}} already registered`);
     }
-    this.beans[key] = val;
+    this.beans[key] = [val];
   }
 
   getBean<T>(key: string, inputs: any[] = []): T {
-    const constructor = this.beans[key];
-    if (constructor == null) {
+    const constructors = this.beans[key];
+    if (constructors == null || constructors[0] == null) {
       throw new Error(`bean {${key}} is not registed`);
     }
 
     let injectionMetadata: InjectionMetadata = (
-      Reflect.getMetadata(injectionMetadataKey, constructor.prototype) || {}
+      Reflect.getMetadata(injectionMetadataKey, constructors[0].prototype) || {}
     );
 
     const args = _.map(injectionMetadata.injects, (inject) => {
       return this.getSingletonBean(inject.ref);
     });
 
-    const instance = new (constructor.bind.apply(
-      constructor, [null].concat(args),
+    const instance = new (constructors[0].bind.apply(
+      constructors[0], [null].concat(args),
     ));
 
     _.each(injectionMetadata.inputs, (input) => {
@@ -66,7 +66,7 @@ export class BeanProvider {
   }
 
   getRegisteredBeans(): Constructor[] {
-    return Object.values(this.beans);
+    return _.flatten(Object.values(this.beans));
   }
 
   clear() {

@@ -25,7 +25,7 @@ describe('core -> injection', () => {
     core.beanProvider.register(B);
     let b: B = core.beanProvider.getSingletonBean('B');
     b.a.foo.should.be.equal('bar0');
-    should(b.c).be.not.ok();
+    b.c.should.be.ok();
     b.d.should.be.empty();
 
     let b2: B = core.beanProvider.getSingletonBean('B');

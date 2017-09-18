@@ -34,7 +34,7 @@ describe('core -> module', () => {
     (SampleModule as core.NwModule).$getModuleMetadata().should.have.properties({
       workers: [Worker1],
       accounts: [Account1],
-      services: [],
+      providers: [],
     });
   });
 
