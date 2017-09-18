@@ -28,7 +28,7 @@ const LOG = logger.getLogger();
 @Service()
 export class KoaService {
 
-  public app:    Koa        = new Koa();
+  public app:    Koa     = new Koa();
   public router: Router  = new Router();
 
   constructor(
