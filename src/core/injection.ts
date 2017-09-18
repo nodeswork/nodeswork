@@ -60,6 +60,10 @@ export class BeanProvider {
     return this.singletons[key] as T;
   }
 
+  getRegisteredBeans(): Constructor[] {
+    return Object.values(this.beans);
+  }
+
   clear() {
     this.singletons = {};
     this.beans = {};
@@ -79,7 +83,7 @@ export interface InputMetadata extends InjectMetadata {
 
 export interface InjectionMetadata {
   name?:     string;
-  path?:     string;
+  tags?:     string[];
   injects?:  InjectMetadata[];
   inputs?:   InputMetadata[];
 }
@@ -110,13 +114,15 @@ export function Input(options: { type?: string } = {}) {
   };
 }
 
-export function Injectable(options?: { inputs: boolean }) {
+export function Injectable(options?: { inputs?: boolean, tags?: string[] }) {
   return <T extends {new(...args:any[]):{}}>(constructor: T) => {
 
     const injectionMetadata: InjectionMetadata = Reflect.getMetadata(
       injectionMetadataKey, constructor.prototype,
     ) || {};
     const ct = Reflect.getMetadata('design:paramtypes', constructor);
+
+    injectionMetadata.name = constructor.name;
 
     if (!(options && options.inputs)) {
       injectionMetadata.inputs = [];
@@ -129,8 +135,18 @@ export function Injectable(options?: { inputs: boolean }) {
       };
     });
 
+    if (options && options.tags) {
+      injectionMetadata.tags = options.tags;
+    }
+
     Reflect.defineMetadata(
       injectionMetadataKey, injectionMetadata, constructor.prototype,
     );
   };
+}
+
+export function getInjectionMetadata(
+  constructor: Constructor
+): InjectionMetadata {
+  return Reflect.getMetadata(injectionMetadataKey, constructor.prototype);
 }

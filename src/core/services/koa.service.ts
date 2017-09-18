@@ -1,9 +1,11 @@
-import { NwModule } from '../module';
+import * as Koa     from 'koa'
+
 import { Service }  from '../service';
 
 @Service()
 export class KoaService {
-  constructor() {
-    console.log('start from here');
-  }
+
+  public app: Koa = new Koa();
+
+  constructor() { }
 }

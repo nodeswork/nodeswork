@@ -1,18 +1,7 @@
 import * as _                        from 'underscore';
 import { NwModule }                  from './module';
 import { beanProvider, Constructor } from './injection';
-import { KoaService }                from './services';
-
-@NwModule({
-  services: [
-    KoaService,
-  ],
-  bootstrap: [
-    KoaService,
-  ],
-})
-export class CoreModule {
-}
+import { CoreModule }                from './core.module';
 
 export interface BootstrapOptions {
   noCore?: boolean;
@@ -26,7 +15,7 @@ export function bootstrap(nwModule: any, options: BootstrapOptions = {}) {
     bootstraps = _.union(bootstraps, coreBootstrap);
   }
   const moduleBootstrap = registerModule(nwModule);
-  bootstraps = _.union(bootstraps, moduleBootstrap);
+  bootstraps = _.union(moduleBootstrap, bootstraps);
 
   beanProvider.getSingletonBean(nwModule.name);
 

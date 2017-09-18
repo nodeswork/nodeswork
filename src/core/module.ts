@@ -19,7 +19,7 @@ export interface ModuleMetadata extends NwModuleOptions {
 }
 
 export function NwModule(options: NwModuleOptions) {
-  const injectable = Injectable();
+  const injectable = Injectable({ tags: ['module'] });
   return <T extends {new(...args:any[]):{}}>(constructor: T) => {
     injectable(constructor);
 

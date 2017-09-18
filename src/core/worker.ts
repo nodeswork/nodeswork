@@ -5,6 +5,6 @@ export interface Worker<T> {
 }
 
 export function Worker() {
-  const injectable = Injectable({ inputs: true });
+  const injectable = Injectable({ inputs: true, tags: ['worker'] });
   return injectable;
 }
