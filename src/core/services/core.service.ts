@@ -1,5 +1,9 @@
-import { Service }       from '../service';
-import { KoaService }    from './koa.service';
+import * as logger    from '@nodeswork/logger';
+
+import { Service }    from '../service';
+import { KoaService } from './koa.service';
+
+const LOG = logger.getLogger();
 
 @Service()
 export class CoreService {
@@ -8,6 +12,6 @@ export class CoreService {
     private koa: KoaService,
   ) {
     this.koa.app.listen(28900);
-    console.log('server is start at http://localhost:28900');
+    LOG.info('server is start', { url: 'http://localhost:28900' });
   }
 }

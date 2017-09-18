@@ -27,6 +27,7 @@
     "@types/koa-router": "^7.0.22",
     "@types/request-promise": "^4.1.36",
     "@types/underscore": "^1.8.3",
+    "@types/winston": "^2.3.5",
     "case": "^1.5.2",
     "koa": "^2.2.0",
     "koa-bodyparser": "^4.2.0",
@@ -36,13 +37,14 @@
     "request": "^2.81.0",
     "request-promise": "^4.2.1",
     "underscore": "^1.8.3",
+    "winston": "^2.3.1",
     "winston-mongodb": "^2.0.10"
   },
   "peerDependencies": {
     "@nodeswork/logger": "^0.0.5"
   },
   "devDependencies": {
-    "@nodeswork/logger": "^0.0.5",
+    "@nodeswork/logger": "^0.1.0",
     "@types/mocha": "^2.2.43",
     "@types/node": "^8.0.8",
     "@types/should": "^11.2.0",
@@ -53,8 +55,7 @@
     "mocha": "^3.4.2",
     "should": "^11.2.1",
     "ts-node": "^3.3.0",
-    "typescript": "^2.4.1",
-    "winston": "^2.3.1"
+    "typescript": "^2.4.1"
   },
   "keywords": [
     "nodeswork"
