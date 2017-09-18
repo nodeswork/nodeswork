@@ -7,7 +7,7 @@ class Account1 {
   name: string;
 }
 
-@core.Injectable({ inputs: true })
+@core.Worker()
 class Worker1 implements core.Worker<string> {
   @core.Input() account1: Account1;
 
@@ -27,11 +27,11 @@ class Worker1 implements core.Worker<string> {
 class SampleModule {
 }
 
-const sampleModule = new SampleModule() as core.NwModule;
+core.bootstrap(SampleModule, {noCore: true});
 
 describe('core -> module', () => {
   it ('should returns right module meta', () => {
-    sampleModule.$getModuleMetadata().should.have.properties({
+    (SampleModule as core.NwModule).$getModuleMetadata().should.have.properties({
       workers: [Worker1],
       accounts: [Account1],
       services: [],
@@ -39,7 +39,7 @@ describe('core -> module', () => {
   });
 
   it ('should work with account', async () => {
-    const result = await sampleModule.$work('Worker1', [
+    const result = await (SampleModule as core.NwModule).$work('Worker1', [
       {
         type: 'Account1',
         data: {

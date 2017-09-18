@@ -8,10 +8,11 @@ import { Worker } from './worker';
 export const moduleMetadataKey = Symbol('nw:module');
 
 export interface NwModuleOptions {
-  depends?:  Constructor[];
-  workers?:  Constructor[];
-  accounts?: Constructor[];
-  services?: Constructor[];
+  depends?:    Constructor[];
+  workers?:    Constructor[];
+  accounts?:   Constructor[];
+  services?:   Constructor[];
+  bootstrap?:  Constructor[];
 }
 
 export interface ModuleMetadata extends NwModuleOptions {
@@ -23,23 +24,24 @@ export function NwModule(options: NwModuleOptions) {
     injectable(constructor);
 
     const moduleMetadata: ModuleMetadata = {
-      workers: [],
-      accounts: [],
-      services: [],
+      workers:    [],
+      accounts:   [],
+      services:   [],
+      bootstrap:  [],
     };
 
     function process(opts: NwModuleOptions) {
       _.each(opts.workers, (worker) => {
-        beanProvider.register(worker);
         moduleMetadata.workers.push(worker);
       });
       _.each(opts.accounts, (account) => {
-        beanProvider.register(account);
         moduleMetadata.accounts.push(account);
       });
       _.each(opts.services, (service) => {
-        beanProvider.register(service);
         moduleMetadata.services.push(service);
+      });
+      _.each(opts.bootstrap, (component) => {
+        moduleMetadata.bootstrap.push(component);
       });
     }
 
@@ -57,8 +59,8 @@ export function NwModule(options: NwModuleOptions) {
 
     beanProvider.register(constructor);
 
-    constructor.prototype.$getModuleMetadata  = $getModuleMetadata;
-    constructor.prototype.$work               = $work;
+    (constructor as any).$getModuleMetadata  = $getModuleMetadata;
+    (constructor as any).$work               = $work;
   };
 }
 
@@ -67,12 +69,13 @@ export function getModuleMetadata(nwModule: Constructor): ModuleMetadata {
 }
 
 export interface NwModule {
+  new(...args:any[]): {}
   $getModuleMetadata(): ModuleMetadata;
   $work<T>(workerName: string, inputs: object[]): Promise<T>;
 }
 
 function $getModuleMetadata() {
-  return getModuleMetadata(this.constructor);
+  return getModuleMetadata(this);
 }
 
 async function $work<T>(workerName: string, inputs: object[]): Promise<T> {
