@@ -5,8 +5,7 @@ import { Handler }       from '../handler';
 })
 export class ServiceStatsHandler implements Handler<object> {
 
-  constructor() {
-  }
+  constructor() { }
 
   handle() {
     return {

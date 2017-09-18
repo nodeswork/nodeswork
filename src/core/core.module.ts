@@ -1,12 +1,13 @@
-import { NwModule }  from './module';
+import { NwModule }       from './module';
 import {
   CoreService,
   KoaService,
   ModuleService,
-}                    from './services';
+}                         from './services';
 import {
-  ServiceStatsHandler
-}                    from './handlers';
+  ServiceStatsHandler,
+  ServiceStuctureHandler,
+}                         from './handlers';
 
 @NwModule({
   services: [
@@ -18,6 +19,7 @@ import {
   ],
   handlers: [
     ServiceStatsHandler,
+    ServiceStuctureHandler,
   ],
   bootstrap: [
     CoreService,
