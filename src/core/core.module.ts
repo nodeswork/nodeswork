@@ -14,8 +14,10 @@ import { ContextInput }      from './inputs';
 import {
   BodyParserMiddleware,
   ContextLogger,
-  MIDDLEWARE,
 }                            from './providers';
+import {
+  MIDDLEWARE,
+}                            from './middleware';
 
 @NwModule({
   providers: [

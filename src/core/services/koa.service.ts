@@ -21,7 +21,8 @@ import {
   MiddlewareOptions,
   RouterMiddlewareProvider,
   isAppMiddlwareProvider,
-}                                  from '../providers/middleware.provider';
+  isRouterMiddlwareProvider,
+}                                  from '../middleware';
 
 const LOG = logger.getLogger();
 
@@ -51,7 +52,8 @@ export class KoaService {
       }
       if (isAppMiddlwareProvider(middleware)) {
         this.app.use(middleware.appMiddleware());
-      } else {
+      }
+      if (isRouterMiddlwareProvider(middleware)) {
         this.router.use(middleware.routerMiddleware());
       }
     }
