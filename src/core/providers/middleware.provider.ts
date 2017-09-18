@@ -21,7 +21,7 @@ export function isAppMiddlwareProvider(
 
 export const MIDDLEWARE = 'ROUTER_MIDDLEWARE';
 
-export class CoreMiddlewares implements AppMiddlewareProvider {
+export class BodyParserMiddleware implements AppMiddlewareProvider {
 
   appMiddleware() {
     return KoaBodyParser();

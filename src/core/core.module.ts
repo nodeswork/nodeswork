@@ -12,8 +12,8 @@ import {
 }                            from './handlers';
 import { ContextInput }      from './inputs';
 import {
+  BodyParserMiddleware,
   ContextLogger,
-  CoreMiddlewares,
   MIDDLEWARE,
 }                            from './providers';
 
@@ -27,7 +27,7 @@ import {
     ModuleService,
     {
       provide:   MIDDLEWARE,
-      useClass:  CoreMiddlewares,
+      useClass:  BodyParserMiddleware,
       multi:     true,
     },
   ],
