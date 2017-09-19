@@ -36,7 +36,7 @@ export class CoreMiddleware implements AppMiddlewareProvider {
 
         if (err.meta.responseCode >= 500) {
           LOG.error('5xx in request', err.toJSON({ cause: true, stack: true }));
-        } else {
+        } else if (err.meta.responseCode >= 400){
           LOG.warn('4xx in request', err.toJSON());
         }
       }
