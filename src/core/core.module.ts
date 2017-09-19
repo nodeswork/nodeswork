@@ -14,6 +14,7 @@ import { ContextInput }      from './inputs';
 import {
   BodyParserMiddleware,
   ContextLogger,
+  CoreMiddleware,
 }                            from './providers';
 import {
   MIDDLEWARE,
@@ -30,6 +31,11 @@ import {
     {
       provide:   MIDDLEWARE,
       useClass:  BodyParserMiddleware,
+      multi:     true,
+    },
+    {
+      provide:   MIDDLEWARE,
+      useClass:  CoreMiddleware,
       multi:     true,
     },
   ],

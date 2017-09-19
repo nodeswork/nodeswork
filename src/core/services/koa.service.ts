@@ -20,6 +20,7 @@ import {
   MiddlewareProvider,
   MiddlewareOptions,
   RouterMiddlewareProvider,
+  RouterMiddlewareResult,
   isAppMiddlwareProvider,
   isRouterMiddlwareProvider,
 }                                  from '../middleware';
@@ -54,7 +55,7 @@ export class KoaService {
         this.app.use(middleware.appMiddleware());
       }
       if (isRouterMiddlwareProvider(middleware)) {
-        this.router.use(middleware.routerMiddleware());
+        this.useRouter(middleware.routerMiddleware());
       }
     }
 
@@ -83,7 +84,7 @@ export class KoaService {
       );
       const options = metadata.meta as MiddlewareOptions;
       if (options && options.later && !isAppMiddlwareProvider(middleware)) {
-        this.router.use(middleware.routerMiddleware());
+        this.useRouter(middleware.routerMiddleware());
       }
     }
 
@@ -100,6 +101,16 @@ export class KoaService {
       if (options && options.later && isAppMiddlwareProvider(middleware)) {
         this.app.use(middleware.appMiddleware());
       }
+    }
+  }
+
+  private useRouter(middleware: RouterMiddlewareResult) {
+    if (typeof middleware === 'function') {
+      this.router.use(middleware);
+    } else {
+      let args = [middleware.path, middleware.methods];
+      Array.prototype.push.apply(args, _.flatten([middleware.middlewares]));
+      this.router.register.apply(this.router, args);
     }
   }
 }

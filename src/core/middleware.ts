@@ -7,8 +7,14 @@ export interface AppMiddlewareProvider {
 }
 
 export interface RouterMiddlewareProvider {
-  routerMiddleware(): Router.IMiddleware;
+  routerMiddleware(): RouterMiddlewareResult;
 }
+
+export type RouterMiddlewareResult = Router.IMiddleware | {
+  path:         string|RegExp;
+  methods:      string[];
+  middlewares:  Router.IMiddleware | Router.IMiddleware[];
+};
 
 export type MiddlewareProvider =
   AppMiddlewareProvider | RouterMiddlewareProvider;

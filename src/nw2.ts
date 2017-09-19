@@ -12,6 +12,13 @@ class MyWorker implements core.Worker<string> {
   workers: [
     MyWorker,
   ],
+  providers: [
+    {
+      provide:   core.MIDDLEWARE,
+      useClass:  core.UncaughtRequestMiddleware,
+      multi:     true,
+    },
+  ],
 })
 class AModule {
 }

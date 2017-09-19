@@ -61,7 +61,9 @@ export class BeanProvider {
       throw new Error(`bean {${key}} is not registed`);
     }
 
-    const firstConstructors = _.first(constructors, options.limit || 1);
+    const firstConstructors = _.first(
+      constructors, options.limit || constructors.length,
+    );
     const result = _.map(firstConstructors, (constructor) => {
       let injectionMetadata: InjectionMetadata = (
         Reflect.getMetadata(injectionMetadataKey, constructor.prototype) || {}
