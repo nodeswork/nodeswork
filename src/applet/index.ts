@@ -1,2 +1,3 @@
 export * from './worker';
-export * from './applet.module';
+export * from './module';
+export * from './bootstrap';

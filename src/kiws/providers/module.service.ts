@@ -20,7 +20,7 @@ export class ModuleService {
     return this.getRegisteredBeansWithTag('handler');
   }
 
-  private getRegisteredBeansWithTag(tag: string): InjectionMetadata[] {
+  public getRegisteredBeansWithTag(tag: string): InjectionMetadata[] {
     const beans = beanProvider.getRegisteredBeans();
 
     const metadatas = _.map(beans, (bean) => getInjectionMetadata(bean));

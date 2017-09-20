@@ -30,4 +30,4 @@ class AModule {
   constructor() { }
 }
 
-kiws.bootstrap(AModule, kiws.CoreModule);
+applet.bootstrap(AModule);

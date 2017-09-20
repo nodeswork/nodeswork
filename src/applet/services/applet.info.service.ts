@@ -9,7 +9,7 @@ export class AppletInfoService {
 
   private appletInfo: AppletInfo = {
     env:          'dev',
-    appletToken:  'unkown',
+    appletToken:  'unset',
   };
 
   constructor() { }

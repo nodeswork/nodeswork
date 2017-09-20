@@ -17,9 +17,7 @@ export class ServiceHandler {
   @Endpoint({ path: '/sstruct' })
   structure() {
     return {
-      handlers: this.modules.getRegisteredHandlers(),
-      services: this.modules.getRegisteredProviders(),
-      // appletInfo: this.appletInfoService.getAppletInfo(),
+      providers: this.modules.getRegisteredProviders(),
     };
   }
 }
