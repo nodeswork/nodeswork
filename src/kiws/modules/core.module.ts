@@ -1,22 +1,24 @@
-import * as logger      from '@nodeswork/logger';
+import * as logger       from '@nodeswork/logger';
 
-import { Module }       from '../module';
+import { Module }        from '../module';
 import {
   KoaService,
   ModuleService,
-}                       from '../providers';
+}                        from '../providers';
 import {
   BodyParserMiddleware,
-}                       from '../middlewares';
+  ErrorHandleMiddleware,
+}                        from '../middlewares';
 import {
   ServiceHandler,
-}                       from '../handlers';
+}                        from '../handlers';
 
 const LOG = logger.getLogger();
 
 @Module({
   middlewares: [
     BodyParserMiddleware,
+    ErrorHandleMiddleware,
   ],
   handlers: [
     ServiceHandler,
