@@ -20,10 +20,6 @@ export class ModuleService {
     return this.getRegisteredBeansWithTag('handler');
   }
 
-  public getRegisteredWorkers(): InjectionMetadata[] {
-    return this.getRegisteredBeansWithTag('worker');
-  }
-
   private getRegisteredBeansWithTag(tag: string): InjectionMetadata[] {
     const beans = beanProvider.getRegisteredBeans();
 

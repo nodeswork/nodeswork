@@ -1,7 +1,11 @@
 import { Endpoint, Handler } from '../handler';
+import { ModuleService }     from '../providers';
+import { InjectionMetadata } from '../injection';
 
 @Handler({})
 export class ServiceHandler {
+
+  constructor(private modules: ModuleService) { }
 
   @Endpoint({ path: '/sstats' })
   stats() {
@@ -13,9 +17,8 @@ export class ServiceHandler {
   @Endpoint({ path: '/sstruct' })
   structure() {
     return {
-      // handlers: this.modules.getRegisteredHandlers(),
-      // workers: this.modules.getRegisteredWorkers(),
-      // services: this.modules.getRegisteredProviders(),
+      handlers: this.modules.getRegisteredHandlers(),
+      services: this.modules.getRegisteredProviders(),
       // appletInfo: this.appletInfoService.getAppletInfo(),
     };
   }

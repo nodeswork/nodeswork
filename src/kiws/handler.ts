@@ -14,12 +14,15 @@ const ENDPOINT_METADATA_KEY  = Symbol('kiws:endpoint');
  * to KoaRouter.
  */
 export function Handler(options: { tags?: string[], meta?: object } = {}) {
-  const injectable = Injectable({
-    inputs:  true,
-    tags:    _.union(HANDLER_TAGS, options.tags || []),
-    meta:    options.meta,
-  });
   return (constructor: Constructor) => {
+    const endpoints = Reflect.getOwnMetadata(
+      ENDPOINT_METADATA_KEY, constructor.prototype,
+    );
+    const injectable = Injectable({
+      inputs:  true,
+      tags:    _.union(HANDLER_TAGS, options.tags || []),
+      meta:    _.extend({}, options.meta, { endpoints }),
+    });
     injectable(constructor);
     (constructor as any).prototype.$getEndpoints = $getEndpoints;
   };
