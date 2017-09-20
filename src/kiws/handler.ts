@@ -6,8 +6,8 @@ import { Constructor, Injectable } from './injection';
 
 export const HANDLER         = 'HANDLER';
 
-const HANDLER_TAGS           = [ 'handler' ];
-const ENDPOINT_METADATA_KEY  = Symbol('kiws:endpoint');
+const HANDLER_TAGS           = [ 'handler', 'provider' ];
+export const ENDPOINT_METADATA_KEY  = Symbol('kiws:endpoint');
 
 /**
  * Handler class decorator will register the endpoints declared in the provider
@@ -43,8 +43,8 @@ export function Endpoint(options: EndpointOptions) {
     const endpoints: EndpointMetadata[] =
       Reflect.getOwnMetadata(ENDPOINT_METADATA_KEY, target) || [];
     endpoints.push(_.extend({}, options, {
-      name: propertyKey,
-      handler: target.constructor.name,
+      name:     propertyKey,
+      handler:  target.constructor.name,
     }));
     Reflect.defineMetadata(ENDPOINT_METADATA_KEY, endpoints, target);
   }

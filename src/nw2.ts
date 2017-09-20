@@ -3,17 +3,21 @@ require('source-map-support').install()
 import * as applet from './applet';
 import * as kiws   from './kiws';
 
-@applet.Worker()
-class MyWorker implements applet.Worker<string> {
+@applet.WorkerProvider({})
+class MyWorker {
 
+  @applet.Worker({})
   work() {
     return 'work is done';
   }
 }
 
-@kiws.Module({
-  providers: [
+@applet.Module({
+  workers: [
     MyWorker,
+  ],
+  providers: [
+    // MyWorker,
     // {
       // provide:   kiws.MIDDLEWARE,
       // useClass:  core.UncaughtRequestMiddleware,
