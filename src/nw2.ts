@@ -1,26 +1,29 @@
-import * as core from './core';
+require('source-map-support').install()
 
-@core.Worker()
-class MyWorker implements core.Worker<string> {
+import * as applet from './applet';
+import * as kiws   from './kiws';
+
+@applet.Worker()
+class MyWorker implements applet.Worker<string> {
 
   work() {
     return 'work is done';
   }
 }
 
-@core.NwModule({
-  workers: [
-    MyWorker,
-  ],
+@kiws.Module({
   providers: [
-    {
-      provide:   core.MIDDLEWARE,
-      useClass:  core.UncaughtRequestMiddleware,
-      multi:     true,
-    },
+    MyWorker,
+    // {
+      // provide:   kiws.MIDDLEWARE,
+      // useClass:  core.UncaughtRequestMiddleware,
+      // multi:     true,
+    // },
   ],
 })
 class AModule {
+
+  constructor() { }
 }
 
-core.bootstrap(AModule);
+kiws.bootstrap(AModule, kiws.CoreModule);
