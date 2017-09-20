@@ -6,7 +6,6 @@ import {
 }                            from './services';
 import {
   RegisterAppletInfoHandler,
-  ServiceHandler,
 }                            from './handlers';
 import { ContextInput }      from './inputs';
 // import {
@@ -29,7 +28,6 @@ import { ContextInput }      from './inputs';
   ],
   handlers: [
     RegisterAppletInfoHandler,
-    ServiceHandler,
   ],
 })
 export class CoreModule {
