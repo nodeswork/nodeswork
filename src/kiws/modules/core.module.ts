@@ -12,6 +12,10 @@ import {
 import {
   ServiceHandler,
 }                        from '../handlers';
+import {
+  ContextInput,
+  ContextInputProvider,
+}                        from '../inputs';
 
 const LOG = logger.getLogger();
 
@@ -23,7 +27,11 @@ const LOG = logger.getLogger();
   handlers: [
     ServiceHandler,
   ],
+  inputs: [
+    ContextInputProvider,
+  ],
   providers: [
+    ContextInput,
     ModuleService,
     KoaService,
   ],

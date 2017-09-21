@@ -6,7 +6,7 @@ import * as logger                 from '@nodeswork/logger';
 
 import { Service }                 from '../service';
 import { ModuleService }           from './module.service';
-import { Token, }                  from '../injection';
+import { Token, beanProvider }     from '../injection';
 import {
   MIDDLEWARE,
   Middleware,
@@ -17,8 +17,14 @@ import {
 import {
   HANDLER,
   Handler,
-  Endpoint
+  Endpoint,
+  EndpointMetadata,
 }                                  from '../handler';
+import {
+  INPUT,
+  Input,
+  InputProvider,
+}                                  from '../input';
 
 const LOG = logger.getLogger();
 
@@ -32,6 +38,7 @@ export class KoaService {
     private modules: ModuleService,
     @Token(MIDDLEWARE) private middlewareProviders: MiddlewareProvider[],
     @Token(HANDLER)    private handlers:            Handler[],
+    @Token(INPUT)      private inputProviders:      InputProvider[],
   ) {
     const middlewares: Middleware[] = _.flatten(
       _.map(this.middlewareProviders, (provider) => provider.$getMiddlewares())
@@ -49,22 +56,29 @@ export class KoaService {
 
   private registerHandlers() {
     const self = this;
-    for (const handler of this.handlers) {
-      (function(handler: Handler) {
-        const endpoints = handler.$getEndpoints();
 
-        for (const endpoint of endpoints) {
-          _.defaults(endpoint, { method: 'GET' });
-          self.router.register(
-            endpoint.path,
-            _.flatten([ endpoint.method ]),
-            async (ctx: Router.IRouterContext) => {
-              ctx.body = await (handler as any)[endpoint.name]();
-            }
-          );
-          LOG.info('Register router path', endpoint);
+    function register(handlerName: string, endpoint: EndpointMetadata) {
+      _.defaults(endpoint, { method: 'GET' });
+      self.router.register(
+        endpoint.path,
+        _.flatten([ endpoint.method ]),
+        async (ctx: Router.IRouterContext) => {
+          const inputs: Input[] = _.flatten(_.map(
+            self.inputProviders,
+            (provider) => provider.$generateInputs(ctx),
+          ));
+          const handler: Handler = beanProvider.getBean(handlerName, inputs);
+          ctx.body = await (handler as any)[endpoint.name]();
         }
-      })(handler);
+      );
+      LOG.info('Register router path', endpoint);
+    }
+
+    for (const handler of this.handlers) {
+      const endpoints = handler.$getEndpoints();
+      for (const endpoint of endpoints) {
+        register(handler.constructor.name, endpoint);
+      }
     }
   }
 

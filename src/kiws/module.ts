@@ -10,6 +10,7 @@ import {
 }                      from './injection';
 import { MIDDLEWARE }  from './middleware';
 import { HANDLER }     from './handler';
+import { INPUT }       from './input';
 
 const MODULE_METADATA_KEY  = Symbol('kiws:module');
 const MODULE_TAGS          = [ 'module' ];
@@ -18,6 +19,7 @@ export interface ModuleMetadata {
   depends?:      Module[];
   middlewares?:  Constructor[];
   handlers?:     Constructor[];
+  inputs?:       Constructor[];
   providers?:    (Constructor|ConstructorOverride)[];
 }
 
@@ -63,6 +65,14 @@ function $constructors(): (Constructor|ConstructorOverride)[] {
     results.push([{
       provide:   HANDLER,
       useClass:  moduleMetadata.handlers,
+      multi:     true,
+    }]);
+    results.push(moduleMetadata.handlers);
+  }
+  if (moduleMetadata.inputs != null) {
+    results.push([{
+      provide:   INPUT,
+      useClass:  moduleMetadata.inputs,
       multi:     true,
     }]);
   }
