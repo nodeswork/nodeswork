@@ -22,7 +22,7 @@ import {
 }                                  from '../handler';
 import {
   INPUT,
-  Input,
+  RawInput,
   InputProvider,
 }                                  from '../input';
 
@@ -63,12 +63,17 @@ export class KoaService {
         endpoint.path,
         _.flatten([ endpoint.method ]),
         async (ctx: Router.IRouterContext) => {
-          const inputs: Input[] = _.flatten(_.map(
+          const rawInputs: RawInput[] = _.flatten(_.map(
             self.inputProviders,
             (provider) => provider.$generateInputs(ctx),
           ));
+          const inputs = _.map(rawInputs, (rawInput) => {
+            const input = beanProvider.getBean(rawInput.type);
+            _.extend(input, rawInput.data);
+            return input;
+          });
           const handler: Handler = beanProvider.getBean(handlerName, inputs);
-          ctx.body = await (handler as any)[endpoint.name]();
+          ctx.body = await (handler as any)[endpoint.name](ctx);
         }
       );
       LOG.info('Register router path', endpoint);

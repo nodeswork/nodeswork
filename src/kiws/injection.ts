@@ -98,7 +98,7 @@ export class BeanProvider {
           instance[input.propertyName] = candidates;
         } else if (candidates.length > 0) {
           instance[input.propertyName] = candidates[0];
-        } else {
+        } else if (input.fallback) {
           instance[input.propertyName] = this.getBean(input.ref, inputs);
         }
       });
@@ -141,6 +141,7 @@ export interface InjectMetadata {
 
 export interface InputMetadata extends InjectMetadata {
   propertyName:  string;
+  fallback:      boolean;
 }
 
 export interface InjectionMetadata {
@@ -156,7 +157,15 @@ export interface InjectionMetadata {
  * Property decorator which will be injected from inputs or registerd
  * constructors.
  */
-export function Input(options: { type?: string } = {}) {
+export function Inject(options: { type?: string } = {}) {
+  const inputOptions = _.extend({}, options, { fallback: true });
+  return Input(inputOptions);
+}
+
+/**
+ * Property decorator which will be injected from inputs only.
+ */
+export function Input(options: { type?: string, fallback?: boolean } = {}) {
 
   return (target: any, propertyName: string) => {
     const t = Reflect.getMetadata('design:type', target, propertyName);
@@ -177,6 +186,7 @@ export function Input(options: { type?: string } = {}) {
       propertyName,
       ref,
       isArray,
+      fallback: options.fallback,
     });
     Reflect.defineMetadata(INJECTION_METADATA_KEY, injectionMetadata, target);
   };

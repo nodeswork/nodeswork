@@ -32,6 +32,7 @@ function $constructors(): (Constructor|ConstructorOverride)[] {
       useClass:  moduleMetadata.workers,
       multi:     true,
     });
+    Array.prototype.push.apply(results, moduleMetadata.workers);
   }
   return results;
 }

@@ -6,9 +6,14 @@ import * as kiws   from './kiws';
 @applet.WorkerProvider({})
 class MyWorker {
 
+  @kiws.Input() twitter: applet.TwitterAccount;
+
   @applet.Worker({})
   work() {
-    return 'work is done';
+    return {
+      status: 'done',
+      target: this.twitter,
+    };
   }
 }
 
@@ -17,12 +22,7 @@ class MyWorker {
     MyWorker,
   ],
   providers: [
-    // MyWorker,
-    // {
-      // provide:   kiws.MIDDLEWARE,
-      // useClass:  core.UncaughtRequestMiddleware,
-      // multi:     true,
-    // },
+    applet.TwitterAccount,
   ],
 })
 class AModule {

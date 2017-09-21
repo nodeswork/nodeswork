@@ -1,13 +1,13 @@
-import * as Router                              from 'koa-router';
-import * as mongoose                            from 'mongoose';
+import * as Router                                 from 'koa-router';
+import * as mongoose                               from 'mongoose';
 
-import { InputProvider, InputGenerator, Input } from '../input';
+import { InputProvider, InputGenerator, RawInput } from '../input';
 
 @InputProvider({})
 export class ContextInputProvider {
 
   @InputGenerator({})
-  generateContextInput(ctx: Router.IRouterContext): Input {
+  generateContextInput(ctx: Router.IRouterContext): RawInput {
     return {
       type: 'ContextInput',
       data: { ctx },

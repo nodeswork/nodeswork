@@ -31,7 +31,7 @@ export function InputProvider(
 
 export function InputGenerator(options: {} = {}) {
   return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
-    const generators: InputMetadata[] =
+    const generators: InputGeneratorMetadata[] =
       Reflect.getOwnMetadata(INPUT_METADATA_KEY, target) || [];
     generators.push(_.extend({}, options, {
       provider: target.constructor.name,
@@ -41,25 +41,25 @@ export function InputGenerator(options: {} = {}) {
   }
 }
 
-export interface InputMetadata {
+export interface InputGeneratorMetadata {
   provider:  string;
   name:      string;
 }
 
-export interface Input {
+export interface RawInput {
   type:      string;
   data:      any;
 }
 
 export interface InputProvider {
-  $generateInputs(ctx: Router.IRouterContext): Input[];
+  $generateInputs(ctx: Router.IRouterContext): RawInput[];
 }
 
-function $generateInputs(ctx: Router.IRouterContext): Input[] {
-  const metadatas: InputMetadata[] = Reflect.getOwnMetadata(
+function $generateInputs(ctx: Router.IRouterContext): RawInput[] {
+  const metadatas: InputGeneratorMetadata[] = Reflect.getOwnMetadata(
     INPUT_METADATA_KEY, this.constructor.prototype
   ) || [];
-  const inputs: Input[][] = _.map(metadatas, (metadata) => {
+  const inputs: RawInput[][] = _.map(metadatas, (metadata) => {
     return this[metadata.name](ctx);
   });
   return _.flatten(inputs);
