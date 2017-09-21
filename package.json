@@ -21,6 +21,7 @@
     "node": ">= 4.0"
   },
   "dependencies": {
+    "@nodeswork/logger": "^0.1.0",
     "@nodeswork/utils": "0.0.8",
     "@types/boom": "^4.3.7",
     "@types/koa": "^2.0.39",
@@ -44,11 +45,7 @@
     "winston": "^2.3.1",
     "winston-mongodb": "^2.0.10"
   },
-  "peerDependencies": {
-    "@nodeswork/logger": "^0.0.5"
-  },
   "devDependencies": {
-    "@nodeswork/logger": "^0.1.0",
     "@types/mocha": "^2.2.43",
     "@types/node": "^8.0.8",
     "@types/should": "^11.2.0",
